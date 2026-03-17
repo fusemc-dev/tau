@@ -1,0 +1,45 @@
+package dev.fusemc.tau.template.collection.tuple;
+
+import dev.fusemc.tau.Description;
+import dev.fusemc.tau.Scope;
+import dev.fusemc.tau.element.Element;
+import dev.fusemc.tau.element.constructor.DiConstructor;
+import com.manchickas.optionated.Option;
+import dev.fusemc.tau.template.Mu;
+import org.graalvm.polyglot.Value;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+
+public record DiTuple<T, A, B>(@NotNull Element<T, A> a,
+                               @NotNull Element<T, B> b,
+                               @NotNull DiConstructor<T, A, B> constructor) implements Tuple<T> {
+
+    public DiTuple {
+        Objects.requireNonNull(a);
+        Objects.requireNonNull(b);
+        Objects.requireNonNull(constructor);
+    }
+
+    @Override
+    public @NotNull Option<T> parse(@NotNull Value value) {
+        if (Tuple.isTuple(value, 2))
+            return this.a.parse(value, 0)
+                    .flatMap(a -> this.b.parse(value, 1)
+                            .map(b -> this.constructor.construct(a, b)));
+        return Option.none();
+    }
+
+    @Override
+    public @NotNull Option<@NotNull Value> serialize(@Nullable T value) {
+        if (value != null)
+            return Tuple.serializeTuple(value, this.a, this.b);
+        return Option.none();
+    }
+
+    @Override
+    public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+        return Description.tuple(this.a.description(points), this.b.description(points));
+    }
+}
