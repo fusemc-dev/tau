@@ -13,6 +13,6 @@ public record Array(@NotNull Description description) implements Description {
 
     @Override
     public @NotNull String stringify(@NotNull Precedence precedence) {
-        return this.description.stringify(Precedence.POSTFIX) + Description.DELIMITER.apply("[]");
+        return this.description.stringify(Precedence.POSTFIX) + Description.DELIMITER.wrap("[]");
     }
 }

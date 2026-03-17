@@ -1,7 +1,7 @@
 package dev.fusemc.tau.template.dictionary.record;
 
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.element.property.Property;
+import dev.fusemc.tau.element.Property;
 import com.manchickas.optionated.Option;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;

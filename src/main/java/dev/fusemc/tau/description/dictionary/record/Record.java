@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public record Record(@NotNull Property @NotNull[] properties) implements Description {
+public record Record(@NotNull PropertyDescription @NotNull[] properties) implements Description {
 
     public Record {
         Objects.requireNonNull(properties);
@@ -14,14 +14,14 @@ public record Record(@NotNull Property @NotNull[] properties) implements Descrip
     @Override
     public @NotNull String stringify(@NotNull Precedence precedence) {
         var buffer = new StringBuilder();
-        Description.DELIMITER.append(buffer, "{");
+        Description.DELIMITER.wrap(buffer, '{');
         for (var i = 0; i < this.properties.length; i++) {
             var property = this.properties[i];
             if (i > 0)
-                Description.DELIMITER.append(buffer, ", ");
+                Description.DELIMITER.wrap(buffer, ", ");
             buffer.append(property.stringify(Precedence.INFIX));
         }
-        return Description.DELIMITER.append(buffer, "}")
+        return Description.DELIMITER.wrap(buffer, '}')
                 .toString();
     }
 }

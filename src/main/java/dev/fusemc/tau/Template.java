@@ -4,7 +4,7 @@ import dev.fusemc.tau.element.Accessor;
 import dev.fusemc.tau.element.Element;
 import dev.fusemc.tau.element.constructor.DiConstructor;
 import dev.fusemc.tau.element.constructor.MonoConstructor;
-import dev.fusemc.tau.element.property.Property;
+import dev.fusemc.tau.element.Property;
 import dev.fusemc.tau.template.*;
 import dev.fusemc.tau.template.collection.Array;
 import dev.fusemc.tau.template.collection.tuple.DiTuple;
@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public interface Template<T> {
 
@@ -231,22 +230,6 @@ public interface Template<T> {
         return new DiTuple<>(a, b, constructor);
     }
 
-    static <T, A> Property.@NotNull Optional<T, A> optional(@NotNull Property.Required<T, A> property,
-                                                            @NotNull Supplier<A> supplier) {
-        Objects.requireNonNull(property);
-        Objects.requireNonNull(supplier);
-        return new Property.Optional<>(property, supplier);
-    }
-
-    static <T, A> Property.@NotNull Required<T, A> property(@NotNull String name,
-                                                   @NotNull Template<A> template,
-                                                   @NotNull Accessor<T, A> accessor) {
-        Objects.requireNonNull(name);
-        Objects.requireNonNull(template);
-        Objects.requireNonNull(accessor);
-        return new Property.Required<>(name, template, accessor);
-    }
-
     static <T, A> @NotNull Template<T> record(@NotNull Property<T, A> a,
                                               @NotNull MonoConstructor<T, A> constructor) {
         Objects.requireNonNull(a);
@@ -261,6 +244,12 @@ public interface Template<T> {
         Objects.requireNonNull(b);
         Objects.requireNonNull(constructor);
         return new DiRecord<>(a, b, constructor);
+    }
+
+    default <V> Property.Required<V, T> property(@NotNull String name,
+                                                 @NotNull Accessor<V, T> accessor) {
+        Objects.requireNonNull(name);
+        return new Property.Required<>(name, this, accessor);
     }
 
     default <V> @NotNull Template<V> map(@NotNull Function<T, V> forward,

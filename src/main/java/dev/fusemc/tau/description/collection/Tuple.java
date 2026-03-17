@@ -14,14 +14,14 @@ public record Tuple(@NotNull Description @NotNull[] elements) implements Descrip
     @Override
     public @NotNull String stringify(@NotNull Precedence precedence) {
         var buffer = new StringBuilder();
-        Description.DELIMITER.append(buffer, "[");
+        Description.DELIMITER.wrap(buffer, '[');
         for (var i = 0; i < this.elements.length; i++) {
             var element = this.elements[i];
             if (i > 0)
-                Description.DELIMITER.append(buffer, ", ");
+                Description.DELIMITER.wrap(buffer, ", ");
             buffer.append(element.stringify(Precedence.INFIX));
         }
-        return Description.DELIMITER.append(buffer, "]")
+        return Description.DELIMITER.wrap(buffer, ']')
                 .toString();
     }
 }

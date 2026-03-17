@@ -1,6 +1,6 @@
 package dev.fusemc.tau;
 
-import dev.fusemc.tau.description.dictionary.record.Property;
+import dev.fusemc.tau.description.dictionary.record.PropertyDescription;
 import com.manchickas.optionated.Option;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.ApiStatus;
@@ -46,18 +46,22 @@ public final class Tau {
     }
 
     public static @NotNull Description describe(@NotNull Value value) {
-        return Tau.describe(value, Scope.hashScope());
+        return Tau.describe(value, Scope.hashScope(), true);
     }
 
     @ApiStatus.Internal
     private static @NotNull Description describe(@NotNull Value value,
-                                                 @NotNull Scope<Value> visited) {
+                                                 @NotNull Scope<Value> visited,
+                                                 boolean constant) {
         Objects.requireNonNull(value);
         Objects.requireNonNull(visited);
         if (value.isNumber())
             return Description.NUMBER;
-        if (value.isString())
-            return Description.literal(value.asString());
+        if (value.isString()) {
+            if (constant)
+                return Description.literal(value.asString());
+            return Description.STRING;
+        }
         if (value.isBoolean())
             return Description.BOOLEAN;
         if (Tau.isUndefined(value))
@@ -71,14 +75,14 @@ public final class Tau {
                     var buffer = new Description[length];
                     for (var i = 0; i < length; i++) {
                         var element = value.getArrayElement(i);
-                        buffer[i] = Tau.describe(element, visited.branch());
+                        buffer[i] = Tau.describe(element, visited.branch(), true);
                     }
                     return Description.tuple(buffer);
                 }
                 var buffer = new LinkedHashSet<Description>();
                 for (var i = 0; i < length; i++) {
                     var element = value.getArrayElement(i);
-                    var description = Tau.describe(element, visited.branch());
+                    var description = Tau.describe(element, visited.branch(), false);
                     buffer.add(description);
                 }
                 var result = buffer.toArray(Description[]::new);
@@ -89,11 +93,11 @@ public final class Tau {
         if (value.hasMembers()) {
             if (visited.add(value)) {
                 var keys = value.getMemberKeys();
-                var buffer = new Property[keys.size()];
+                var buffer = new PropertyDescription[keys.size()];
                 var i = 0;
                 for (var key : keys) {
                     var member = value.getMember(key);
-                    var description = Tau.describe(member, visited.branch());
+                    var description = Tau.describe(member, visited.branch(), true);
                     buffer[i++] = Description.property(key, description);
                 }
                 return Description.record(buffer);
@@ -107,13 +111,13 @@ public final class Tau {
                     var buffer = new Description[array.length];
                     for (var i = 0; i < array.length; i++) {
                         var element = array[i];
-                        buffer[i] = Tau.describe(element, visited.branch());
+                        buffer[i] = Tau.describe(element, visited.branch(), true);
                     }
                     return Description.tuple(buffer);
                 }
                 var buffer = new LinkedHashSet<Description>();
                 for (var element : array) {
-                    var description = Tau.describe(element, visited.branch());
+                    var description = Tau.describe(element, visited.branch(), false);
                     buffer.add(description);
                 }
                 var result = buffer.toArray(Description[]::new);
@@ -127,7 +131,7 @@ public final class Tau {
                     for (var i = 0; iterator.hasNext(); i++) {
                         var element = iterator.next();
                         if (element instanceof Value v) {
-                            buffer[i] = Tau.describe(v, visited.branch());
+                            buffer[i] = Tau.describe(v, visited.branch(), true);
                             continue;
                         }
                         return Description.UNRESOLVED;
@@ -139,7 +143,7 @@ public final class Tau {
                 for (var i = 0; iterator.hasNext(); i++) {
                     var element = iterator.next();
                     if (element instanceof Value v) {
-                        var description = Tau.describe(v, visited.branch());
+                        var description = Tau.describe(v, visited.branch(), false);
                         buffer.add(description);
                         continue;
                     }
@@ -149,12 +153,12 @@ public final class Tau {
                 return Description.array(Description.union(result));
             }
             if (wrapped instanceof Map<?, ?> map) {
-                var buffer = new Property[map.size()];
+                var buffer = new PropertyDescription[map.size()];
                 var i = 0;
                 for (var entry : map.entrySet()) {
                     if (entry.getKey() instanceof String key) {
                         if (entry.getValue() instanceof Value member) {
-                            var description = Tau.describe(member, visited.branch());
+                            var description = Tau.describe(member, visited.branch(), true);
                             buffer[i++] = Description.property(key, description);
                             continue;
                         }

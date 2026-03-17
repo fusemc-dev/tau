@@ -11,6 +11,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Objects;
 
+/// An `Element` represents a single element of a tuple.
+///
+/// An `Element` associates a single element of a tuple with
+/// a property of type `A` on type `T`. The [Accessor] function
+/// specifies how the property should be accessed from an instance.
+///
+/// @see Property
 public record Element<T, A>(@NotNull Template<A> template,
                             @NotNull Accessor<T, A> accessor) {
 

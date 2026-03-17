@@ -3,7 +3,7 @@ package dev.fusemc.tau.template.dictionary.record;
 import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.element.constructor.DiConstructor;
-import dev.fusemc.tau.element.property.Property;
+import dev.fusemc.tau.element.Property;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;

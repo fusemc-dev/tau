@@ -8,7 +8,7 @@ import dev.fusemc.tau.description.Reference;
 import dev.fusemc.tau.description.Union;
 import dev.fusemc.tau.description.collection.Array;
 import dev.fusemc.tau.description.collection.Tuple;
-import dev.fusemc.tau.description.dictionary.record.Property;
+import dev.fusemc.tau.description.dictionary.record.PropertyDescription;
 import dev.fusemc.tau.description.dictionary.record.Record;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,18 +54,18 @@ public interface Description {
         return new Array(element);
     }
 
-    static @NotNull Property.Optional optional(@NotNull Property.Required property) {
+    static @NotNull PropertyDescription.Optional optional(@NotNull PropertyDescription.Required property) {
         Objects.requireNonNull(property);
-        return new Property.Optional(property.name(), property.description());
+        return new PropertyDescription.Optional(property.name(), property.description());
     }
 
-    static @NotNull Property.Required property(@NotNull String name, @NotNull Description description) {
+    static @NotNull PropertyDescription.Required property(@NotNull String name, @NotNull Description description) {
         Objects.requireNonNull(name);
         Objects.requireNonNull(description);
-        return new Property.Required(name, description);
+        return new PropertyDescription.Required(name, description);
     }
 
-    static @NotNull Description record(@NotNull Property @NotNull... properties) {
+    static @NotNull Description record(@NotNull PropertyDescription @NotNull... properties) {
         Objects.requireNonNull(properties);
         return new Record(properties);
     }
