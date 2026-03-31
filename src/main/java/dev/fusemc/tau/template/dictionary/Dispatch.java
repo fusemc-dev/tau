@@ -67,7 +67,7 @@ public record Dispatch<T, A>(
                 Description.concat(
                         this.discriminant.description(points),
                         Description.delimiter(", "),
-                        Description.UNRESOLVED
+                        Description.ELLIPSIS
                 ),
                 Description.delimiter('}')
         );

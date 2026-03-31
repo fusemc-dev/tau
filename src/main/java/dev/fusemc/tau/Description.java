@@ -27,7 +27,7 @@ public interface Description {
     @NotNull Description UNDEFINED   = Description.keyword("undefined");
     @NotNull Description ANY         = Description.keyword("any");
     @NotNull Description UNKNOWN     = Description.keyword("unknown");
-    @NotNull Description UNRESOLVED  = Description.delimiter("...");
+    @NotNull Description ELLIPSIS = Description.delimiter("...");
 
     static @NotNull Description delimiter(char delimiter) {
         return new Delimiter(String.valueOf(delimiter));

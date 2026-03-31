@@ -163,7 +163,7 @@ public final class Tau {
                         Description.delimiter("[]")
                 );
             }
-            return Description.UNRESOLVED;
+            return Description.ELLIPSIS;
         }
         if (value.hasMembers()) {
             if (visited.add(value)) {
@@ -185,7 +185,7 @@ public final class Tau {
                         Description.delimiter('}')
                 );
             }
-            return Description.UNRESOLVED;
+            return Description.ELLIPSIS;
         }
         if (value.isHostObject()) {
             var wrapped = value.asHostObject();
@@ -241,7 +241,7 @@ public final class Tau {
                             buffer[i] = Tau.describe(v, visited.branch(), constant);
                             continue;
                         }
-                        return Description.UNRESOLVED;
+                        return Description.ELLIPSIS;
                     }
                     return Description.concat(
                             Description.delimiter('['),
@@ -256,7 +256,7 @@ public final class Tau {
                         buffer.add(description);
                         continue;
                     }
-                    return Description.UNRESOLVED;
+                    return Description.ELLIPSIS;
                 }
                 var result = buffer.toArray(Description[]::new);
                 return Description.concat(
@@ -288,7 +288,7 @@ public final class Tau {
                         buffer[i++] = Description.concat(
                                 Description.literal(key),
                                 Description.delimiter(": "),
-                                Description.UNRESOLVED
+                                Description.ELLIPSIS
                         );
                     }
                 }

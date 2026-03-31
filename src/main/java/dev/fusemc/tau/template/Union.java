@@ -23,7 +23,6 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
             var option = alternative.lower(value);
             if (option instanceof Option.Some<T>(var result))
                 return Option.some(result);
-            return Option.none();
         }
         return Option.none();
     }
@@ -34,7 +33,6 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
             var option = alternative.raise(value);
             if (option instanceof Option.Some<Value>(var result))
                 return Option.some(result);
-            return Option.none();
         }
         return Option.none();
     }

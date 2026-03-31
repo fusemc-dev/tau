@@ -279,11 +279,18 @@ public interface Template<T> {
         return new Array<>(element, constructor);
     }
 
-    static <T, A> @NotNull Template<T> dispatch(@NotNull Property<T, A> discriminant,
+    static <T, A> @NotNull Template<@NotNull T> dispatch(@NotNull Property<T, A> discriminant,
                                                 @NotNull Function<A, Option<Record<? extends T>>> dispatch) {
         Objects.requireNonNull(discriminant);
         Objects.requireNonNull(dispatch);
         return new Dispatch<>(discriminant, dispatch);
+    }
+
+    static <T> @NotNull Template<@NotNull T> functional(@NotNull Class<T> type,
+                                                        @NotNull Template<?> returns) {
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(returns);
+        return new Functional<>(type, returns);
     }
 
     static <T, A> @NotNull Element<T, A> element(@NotNull Template<A> template,
