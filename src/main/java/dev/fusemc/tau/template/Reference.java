@@ -17,7 +17,7 @@ public record Reference<T>(@NotNull Class<T> type) implements Template<@NotNull 
     }
 
     @Override
-    public @NotNull Option<@NotNull T> parse(@NotNull Value value) {
+    public @NotNull Option<@NotNull T> lower(@NotNull Value value) {
         if (value.isHostObject()) {
             var host = value.asHostObject();
             if (this.type.isInstance(host))
@@ -28,7 +28,7 @@ public record Reference<T>(@NotNull Class<T> type) implements Template<@NotNull 
     }
 
     @Override
-    public @NotNull Option<@NotNull Value> serialize(@Nullable T value) {
+    public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
         if (value != null)
             return Option.some(Value.asValue(value));
         return Option.none();

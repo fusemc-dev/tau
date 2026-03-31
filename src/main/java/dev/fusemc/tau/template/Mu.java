@@ -22,18 +22,18 @@ public final class Mu<T> implements Template<T> {
 
     @Override
     @SuppressWarnings("ConstantValue")
-    public @NotNull Option<T> parse(@NotNull Value value) {
+    public @NotNull Option<T> lower(@NotNull Value value) {
         if (this.delegate == null)
             throw new AssertionError("Attempted to parse() a Mu within the constructor function.");
-        return this.delegate.parse(value);
+        return this.delegate.lower(value);
     }
 
     @Override
     @SuppressWarnings("ConstantValue")
-    public @NotNull Option<@NotNull Value> serialize(@Nullable T value) {
+    public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
         if (this.delegate == null)
             throw new AssertionError("Attempted to serialize() a Mu within the constructor function.");
-        return this.delegate.serialize(value);
+        return this.delegate.raise(value);
     }
 
     @Override

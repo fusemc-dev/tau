@@ -1,4 +1,4 @@
-package dev.fusemc.tau.description;
+package dev.fusemc.tau.description.primitive;
 
 import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
@@ -9,14 +9,14 @@ import java.util.Objects;
 
 public record Keyword(@NotNull String keyword) implements Description {
 
-    public static final Style STYLE = Charcoal.foreground(0xCF8E6D);
+    static final Style STYLE = Charcoal.foreground(0xCF8E6D);
 
     public Keyword {
         Objects.requireNonNull(keyword);
     }
 
     @Override
-    public @NotNull String stringify(@NotNull Precedence precedence) {
+    public @NotNull String stringify() {
         return Keyword.STYLE.wrap(this.keyword);
     }
 }

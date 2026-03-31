@@ -21,22 +21,22 @@ public record MonoTuple<T, A>(@NotNull Element<T, A> a,
     }
 
     @Override
-    public @NotNull Option<T> parse(@NotNull Value value) {
+    public @NotNull Option<T> lower(@NotNull Value value) {
         if (Tuple.isTuple(value, 1))
-            return this.a.parse(value, 0)
+            return this.a.lower(value, 0)
                     .map(this.constructor::construct);
         return Option.none();
     }
 
     @Override
-    public @NotNull Option<@NotNull Value> serialize(@Nullable T value) {
+    public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
         if (value != null)
-            return Tuple.serializeTuple(value, this.a);
+            return Tuple.serialize(value, this.a);
         return Option.none();
     }
 
     @Override
     public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.tuple(this.a.description(points));
+        return Tuple.description(points, this.a);
     }
 }

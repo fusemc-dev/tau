@@ -26,20 +26,20 @@ public record Element<T, A>(@NotNull Template<A> template,
         Objects.requireNonNull(accessor);
     }
 
-    public @NotNull Option<A> parse(@NotNull Value value, int position) {
+    public @NotNull Option<A> lower(@NotNull Value value, int position) {
         Objects.requireNonNull(value);
         if (position >= 0) {
             if (value.hasArrayElements()) {
                 var length = (int) value.getArraySize();
                 if (position < length)
-                    return this.template.parse(value.getArrayElement(position));
+                    return this.template.lower(value.getArrayElement(position));
                 return Option.none();
             }
             if (value.isHostObject()) {
                 var host = value.asHostObject();
                 if (host instanceof Value[] values) {
                     if (position < values.length)
-                        return this.template.parse(values[position]);
+                        return this.template.lower(values[position]);
                     return Option.none();
                 }
                 if (host instanceof Collection<?> collection) {
@@ -54,7 +54,7 @@ public record Element<T, A>(@NotNull Template<A> template,
                     if (iterator.hasNext()) {
                         var element = iterator.next();
                         if (element instanceof Value v)
-                            return this.template.parse(v);
+                            return this.template.lower(v);
                         return Option.none();
                     }
                     return Option.none();
@@ -66,9 +66,9 @@ public record Element<T, A>(@NotNull Template<A> template,
         return Option.none();
     }
 
-    public @NotNull Option<Value> serialize(@NotNull T instance) {
+    public @NotNull Option<Value> raise(@NotNull T instance) {
         Objects.requireNonNull(instance);
-        return this.template.serialize(this.accessor.access(instance));
+        return this.template.raise(this.accessor.access(instance));
     }
 
     public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {

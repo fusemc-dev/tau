@@ -18,6 +18,6 @@ public class TypeException extends RuntimeException {
 
     @Override
     public @NotNull String getMessage() {
-        return String.format("Type '%s' is not assignable to type '%s'.", this.provided.stringify(Description.Precedence.INFIX), this.expected.stringify(Description.Precedence.INFIX));
+        return String.format("Type '%s' is not assignable to type '%s'.", this.provided.stringify(), this.expected.stringify());
     }
 }

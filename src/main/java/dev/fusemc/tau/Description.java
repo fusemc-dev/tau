@@ -1,33 +1,42 @@
 package dev.fusemc.tau;
 
-import com.manchickas.charcoal.Charcoal;
-import com.manchickas.charcoal.Style;
-import dev.fusemc.tau.description.Keyword;
-import dev.fusemc.tau.description.Literal;
-import dev.fusemc.tau.description.Reference;
-import dev.fusemc.tau.description.Union;
-import dev.fusemc.tau.description.collection.Array;
-import dev.fusemc.tau.description.collection.Tuple;
-import dev.fusemc.tau.description.dictionary.record.PropertyDescription;
-import dev.fusemc.tau.description.dictionary.record.Record;
+import dev.fusemc.tau.description.Concat;
+import dev.fusemc.tau.description.Join;
+import dev.fusemc.tau.description.primitive.Delimiter;
+import dev.fusemc.tau.description.primitive.Keyword;
+import dev.fusemc.tau.description.primitive.Literal;
+import dev.fusemc.tau.description.primitive.Reference;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-@FunctionalInterface
 public interface Description {
 
-    @NotNull Style DELIMITER        = Charcoal.foreground(0xBCBEC4);
+    @NotNull Description NUMBER      = Description.keyword("number");
+    @NotNull Description BYTE        = Description.keyword("byte");
+    @NotNull Description SHORT       = Description.keyword("short");
+    @NotNull Description INTEGER     = Description.keyword("integer");
+    @NotNull Description LONG        = Description.keyword("long");
+    @NotNull Description FLOAT       = Description.keyword("float");
+    @NotNull Description DOUBLE      = Description.keyword("double");
+    @NotNull Description BIG_INTEGER = Description.keyword("bigint");
+    @NotNull Description STRING      = Description.keyword("string");
+    @NotNull Description BOOLEAN     = Description.keyword("boolean");
+    @NotNull Description NULL        = Description.keyword("null");
+    @NotNull Description UNDEFINED   = Description.keyword("undefined");
+    @NotNull Description ANY         = Description.keyword("any");
+    @NotNull Description UNKNOWN     = Description.keyword("unknown");
+    @NotNull Description UNRESOLVED  = Description.delimiter("...");
 
-    @NotNull Description NUMBER     = Description.keyword("number");
-    @NotNull Description STRING     = Description.keyword("string");
-    @NotNull Description BOOLEAN    = Description.keyword("boolean");
-    @NotNull Description NULL       = Description.keyword("null");
-    @NotNull Description UNDEFINED  = Description.keyword("undefined");
-    @NotNull Description ANY        = Description.keyword("any");
-    @NotNull Description UNKNOWN    = Description.keyword("unknown");
-    @NotNull Description UNRESOLVED = (_) -> Description.DELIMITER.wrap("...");
+    static @NotNull Description delimiter(char delimiter) {
+        return new Delimiter(String.valueOf(delimiter));
+    }
+
+    static @NotNull Description delimiter(@NotNull String delimiter) {
+        Objects.requireNonNull(delimiter);
+        return new Delimiter(delimiter);
+    }
 
     static @NotNull Description keyword(@NotNull String keyword) {
         Objects.requireNonNull(keyword);
@@ -44,51 +53,16 @@ public interface Description {
         return new Reference(clazz);
     }
 
-    static @NotNull Description union(@NotNull Description @NotNull... alternatives) {
-        Objects.requireNonNull(alternatives);
-        return new Union(Arrays.copyOf(alternatives, alternatives.length));
+    static @NotNull Description concat(@NotNull Description @NotNull... descriptions) {
+        Objects.requireNonNull(descriptions);
+        return new Concat(Arrays.copyOf(descriptions, descriptions.length));
     }
 
-    static @NotNull Description array(@NotNull Description element) {
-        Objects.requireNonNull(element);
-        return new Array(element);
+    static @NotNull Description join(@NotNull Description delimiter, @NotNull Description @NotNull... descriptions) {
+        Objects.requireNonNull(delimiter);
+        Objects.requireNonNull(descriptions);
+        return new Join(delimiter, Arrays.copyOf(descriptions, descriptions.length));
     }
 
-    static @NotNull PropertyDescription.Optional optional(@NotNull PropertyDescription.Required property) {
-        Objects.requireNonNull(property);
-        return new PropertyDescription.Optional(property.name(), property.description());
-    }
-
-    static @NotNull PropertyDescription.Required property(@NotNull String name, @NotNull Description description) {
-        Objects.requireNonNull(name);
-        Objects.requireNonNull(description);
-        return new PropertyDescription.Required(name, description);
-    }
-
-    static @NotNull Description record(@NotNull PropertyDescription @NotNull... properties) {
-        Objects.requireNonNull(properties);
-        return new Record(properties);
-    }
-
-    static @NotNull Description tuple(@NotNull Description @NotNull... elements) {
-        Objects.requireNonNull(elements);
-        return new Tuple(elements);
-    }
-
-    default @NotNull String stringify() {
-        return this.stringify(Precedence.INFIX);
-    }
-
-    @NotNull String stringify(@NotNull Precedence precedence);
-
-    enum Precedence {
-
-        INFIX,
-        POSTFIX;
-
-        public boolean isTighterThan(@NotNull Precedence other) {
-            Objects.requireNonNull(other);
-            return this.ordinal() > other.ordinal();
-        }
-    }
+    @NotNull String stringify();
 }

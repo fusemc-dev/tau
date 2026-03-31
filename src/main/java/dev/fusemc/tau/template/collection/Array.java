@@ -22,13 +22,13 @@ public record Array<T>(@NotNull Template<T> template,
     }
 
     @Override
-    public @NotNull Option<T[]> parse(@NotNull Value value) {
+    public @NotNull Option<T[]> lower(@NotNull Value value) {
         if (value.hasArrayElements()) {
             var length = (int) value.getArraySize();
             var buffer = this.constructor.apply(length);
             for (var i = 0; i < length; i++) {
                 var element = value.getArrayElement(i);
-                var option = this.template.parse(element);
+                var option = this.template.lower(element);
                 if (option instanceof Option.Some<T>(var result)) {
                     buffer[i] = result;
                     continue;
@@ -42,7 +42,7 @@ public record Array<T>(@NotNull Template<T> template,
             if (host instanceof Value[] values) {
                 var buffer = this.constructor.apply(values.length);
                 for (var i = 0; i < values.length; i++) {
-                    var option = this.template.parse(values[i]);
+                    var option = this.template.lower(values[i]);
                     if (option instanceof Option.Some<T>(var result)) {
                         buffer[i] = result;
                         continue;
@@ -58,7 +58,7 @@ public record Array<T>(@NotNull Template<T> template,
                 for (var i = 0; iterator.hasNext(); i++) {
                     var element = iterator.next();
                     if (element instanceof Value v) {
-                        var option = this.template.parse(v);
+                        var option = this.template.lower(v);
                         if (option instanceof Option.Some<T>(var result)) {
                             buffer[i] = result;
                             continue;
@@ -75,11 +75,11 @@ public record Array<T>(@NotNull Template<T> template,
     }
 
     @Override
-    public @NotNull Option<@NotNull Value> serialize(@Nullable T[] value) {
+    public @NotNull Option<@NotNull Value> raise(@Nullable T[] value) {
         if (value != null) {
             var buffer = new Value[value.length];
             for (var i = 0; i < value.length; i++) {
-                var option = this.template.serialize(value[i]);
+                var option = this.template.raise(value[i]);
                 if (option instanceof Option.Some<Value>(var result)) {
                     buffer[i] = result;
                     continue;
@@ -93,6 +93,13 @@ public record Array<T>(@NotNull Template<T> template,
 
     @Override
     public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.array(this.template.description(points));
+        return Description.concat(
+                Description.concat(
+                        Description.delimiter("("),
+                        this.template.description(points),
+                        Description.delimiter(')')
+                ),
+                Description.delimiter("[]")
+        );
     }
 }

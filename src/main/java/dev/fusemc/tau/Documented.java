@@ -12,6 +12,4 @@ import java.lang.annotation.Target;
 public @interface Documented {
 
     @NotNull String value();
-
-    @NotNull String reference() default "";
 }

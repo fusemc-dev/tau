@@ -8,6 +8,7 @@ import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements Template<T> {
@@ -17,32 +18,31 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
     }
 
     @Override
-    public @NotNull Option<T> parse(@NotNull Value value) {
+    public @NotNull Option<T> lower(@NotNull Value value) {
         for (var alternative : this.alternatives) {
-            var option = alternative.parse(value);
+            var option = alternative.lower(value);
             if (option instanceof Option.Some<T>(var result))
                 return Option.some(result);
+            return Option.none();
         }
         return Option.none();
     }
 
     @Override
-    public @NotNull Option<@NotNull Value> serialize(@Nullable T value) {
+    public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
         for (var alternative : this.alternatives) {
-            var option = alternative.serialize(value);
+            var option = alternative.raise(value);
             if (option instanceof Option.Some<Value>(var result))
                 return Option.some(result);
+            return Option.none();
         }
         return Option.none();
     }
 
     @Override
     public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        var buffer = new Description[this.alternatives.length];
-        for (var i = 0; i < this.alternatives.length; i++) {
-            var alternative = this.alternatives[i];
-            buffer[i] = alternative.description(points);
-        }
-        return Description.union(buffer);
+        return Description.join(Description.delimiter(" | "), Arrays.stream(this.alternatives)
+                .map(t -> t.description(points))
+                .toArray(Description[]::new));
     }
 }

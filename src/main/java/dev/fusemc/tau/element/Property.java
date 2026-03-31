@@ -3,13 +3,13 @@ package dev.fusemc.tau.element;
 import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.dictionary.record.PropertyDescription;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -34,21 +34,36 @@ public sealed abstract class Property<T, A> {
         this.accessor = Objects.requireNonNull(accessor);
     }
 
-    public @NotNull Option<A> parse(@NotNull Value value) {
+    public @NotNull Option<A> lower(@NotNull Value value) {
         Objects.requireNonNull(value);
-        if (value.hasMembers()) {
+        if (value.hasMembers() && !value.hasArrayElements()) {
             var member = value.getMember(this.name);
             if (member != null)
-                return this.template.parse(member);
+                return this.template.lower(member);
             return this.missing();
+        }
+        if (value.isHostObject()) {
+            var host = value.asHostObject();
+            if (host instanceof Map<?, ?> map) {
+                var member = map.get(this.name);
+                if (member instanceof Value v)
+                    return this.template.lower(v);
+                return this.missing();
+            }
+            return Option.none();
         }
         return Option.none();
     }
 
-    public @NotNull Option<Value> serialize(@NotNull T instance) {
+    public @NotNull Option<Value> raise(@NotNull T instance) {
         Objects.requireNonNull(instance);
-        var property = this.accessor.access(instance);
-        return this.template.serialize(property);
+        var property = this.access(instance);
+        return this.template.raise(property);
+    }
+
+    public A access(@NotNull T instance) {
+        Objects.requireNonNull(instance);
+        return this.accessor.access(instance);
     }
 
     @ApiStatus.Internal
@@ -60,11 +75,11 @@ public sealed abstract class Property<T, A> {
     protected abstract @NotNull Option<A> missing();
 
     @ApiStatus.Internal
-    public abstract @NotNull PropertyDescription description(@NotNull Scope<Mu<?>> points);
+    public abstract @NotNull Description description(@NotNull Scope<Mu<?>> points);
 
     /// Represents a required property.
     ///
-    /// On [#parse(org.graalvm.polyglot.Value)], a **required** property requires its
+    /// On [#lower(org.graalvm.polyglot.Value)], a **required** property requires its
     /// associated field to be present in the dictionary-like for the parsing to succeed.
     ///
     /// @see Optional
@@ -84,7 +99,7 @@ public sealed abstract class Property<T, A> {
 
         /// Constructs an [Optional] property.
         ///
-        /// Constructs a `Property` that, on [#parse(org.graalvm.polyglot.Value)], if
+        /// Constructs a `Property` that, on [#lower(org.graalvm.polyglot.Value)], if
         /// the associated field is missing, uses the provided [Supplier] to supply a fallback `A`.
         ///
         /// The following call to `optional` yields a `Property` that defaults to `42`:
@@ -100,14 +115,18 @@ public sealed abstract class Property<T, A> {
 
         @Override
         @ApiStatus.Internal
-        public @NotNull PropertyDescription description(@NotNull Scope<Mu<?>> points) {
-            return Description.property(this.name, this.template.description(points));
+        public @NotNull Description description(@NotNull Scope<Mu<?>> points) {
+            return Description.concat(
+                    Description.literal(this.name),
+                    Description.delimiter(": "),
+                    this.template.description(points)
+            );
         }
     }
 
     /// Represents an optional property.
     ///
-    /// On [#parse(org.graalvm.polyglot.Value)], an **optional** property uses
+    /// On [#lower(org.graalvm.polyglot.Value)], an **optional** property uses
     /// the provided [Supplier] to supply a fallback `A` if the associated field
     /// is missing in the dictionary-like.
     ///
@@ -132,8 +151,12 @@ public sealed abstract class Property<T, A> {
 
         @Override
         @ApiStatus.Internal
-        public @NotNull PropertyDescription description(@NotNull Scope<Mu<?>> points) {
-            return Description.optional(Description.property(this.name, this.template.description(points)));
+        public @NotNull Description description(@NotNull Scope<Mu<?>> points) {
+            return Description.concat(
+                    Description.literal(this.name),
+                    Description.delimiter("?: "),
+                    this.template.description(points)
+            );
         }
     }
 }

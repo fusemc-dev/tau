@@ -17,15 +17,20 @@ public record Literal(@NotNull String literal) implements Template<String> {
     }
 
     @Override
-    public @NotNull Option<String> parse(@NotNull Value value) {
-        return Template.STRING.parse(value)
-                .filter(this.literal::equals);
+    public @NotNull Option<String> lower(@NotNull Value value) {
+        if (value.isString()) {
+            var string = value.asString();
+            if (this.literal.equals(string))
+                return Option.some(string);
+            return Option.none();
+        }
+        return Option.none();
     }
 
     @Override
-    public @NotNull Option<@NotNull Value> serialize(@Nullable String value) {
+    public @NotNull Option<@NotNull Value> raise(@Nullable String value) {
         if (this.literal.equals(value))
-            return Template.STRING.serialize(value);
+            return Template.STRING.raise(value);
         return Option.none();
     }
 

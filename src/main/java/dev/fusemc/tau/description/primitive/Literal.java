@@ -1,4 +1,4 @@
-package dev.fusemc.tau.description;
+package dev.fusemc.tau.description.primitive;
 
 import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
@@ -10,7 +10,7 @@ import java.util.Objects;
 
 public record Literal(@NotNull String literal) implements Description {
 
-    public static final @NotNull Style STYLE = Charcoal.foreground(0x6AAB73);
+    private static final @NotNull Style STYLE = Charcoal.foreground(0x6AAB73);
     private static final @NotNull Map<Integer, String> ESCAPES = Map.of(
             (int) '\"',  "\\\"",
             (int) '\\', "\\\\",
@@ -26,7 +26,7 @@ public record Literal(@NotNull String literal) implements Description {
     }
 
     @Override
-    public @NotNull String stringify(@NotNull Precedence precedence) {
+    public @NotNull String stringify() {
         var buffer = Literal.STYLE.begin(new StringBuilder())
                 .append('"');
         for (var i = 0; i < this.literal.length();) {
@@ -40,7 +40,7 @@ public record Literal(@NotNull String literal) implements Description {
             }
             buffer.appendCodePoint(c);
         }
-        buffer.append('"');
-        return Literal.STYLE.end(buffer).toString();
+        return Literal.STYLE.end(buffer.append('"'))
+                .toString();
     }
 }

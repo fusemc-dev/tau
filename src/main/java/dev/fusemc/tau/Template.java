@@ -2,16 +2,16 @@ package dev.fusemc.tau;
 
 import dev.fusemc.tau.element.Accessor;
 import dev.fusemc.tau.element.Element;
-import dev.fusemc.tau.element.constructor.DiConstructor;
-import dev.fusemc.tau.element.constructor.MonoConstructor;
+import dev.fusemc.tau.element.constructor.*;
 import dev.fusemc.tau.element.Property;
 import dev.fusemc.tau.template.*;
 import dev.fusemc.tau.template.collection.Array;
 import dev.fusemc.tau.template.collection.tuple.DiTuple;
 import dev.fusemc.tau.template.collection.tuple.MonoTuple;
-import dev.fusemc.tau.template.dictionary.record.DiRecord;
-import dev.fusemc.tau.template.dictionary.record.MonoRecord;
+import dev.fusemc.tau.template.dictionary.Dispatch;
+import dev.fusemc.tau.template.dictionary.record.*;
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.template.dictionary.record.Record;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,35 +25,44 @@ import java.util.function.Predicate;
 
 public interface Template<T> {
 
-    @NotNull Template<@NotNull Number> NUMBER = (Numerical<Number>) value -> {
-        if (value.isNumber()) {
-            if (value.fitsInByte())
-                return Option.some(value.asByte());
-            if (value.fitsInShort())
-                return Option.some(value.asShort());
-            if (value.fitsInInt())
-                return Option.some(value.asInt());
-            if (value.fitsInLong())
-                return Option.some(value.asLong());
-            if (value.fitsInBigInteger())
-                return Option.some(value.asBigInteger());
-            if (value.fitsInFloat())
-                return Option.some(value.asFloat());
-            return Option.some(value.asDouble());
+    @NotNull Template<@NotNull Number> NUMBER = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<Number> lower(@NotNull Value value) {
+            if (value.isNumber()) {
+                if (value.fitsInByte())
+                    return Option.some(value.asByte());
+                if (value.fitsInShort())
+                    return Option.some(value.asShort());
+                if (value.fitsInInt())
+                    return Option.some(value.asInt());
+                if (value.fitsInLong())
+                    return Option.some(value.asLong());
+                if (value.fitsInBigInteger())
+                    return Option.some(value.asBigInteger());
+                if (value.fitsInFloat())
+                    return Option.some(value.asFloat());
+                return Option.some(value.asDouble());
+            }
+            return Option.none();
         }
-        return Option.none();
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.NUMBER;
+        }
     };
     @NotNull Template<@NotNull String> STRING = new Template<>() {
 
         @Override
-        public @NotNull Option<@NotNull String> parse(@NotNull Value value) {
+        public @NotNull Option<@NotNull String> lower(@NotNull Value value) {
             if (value.isString())
                 return Option.some(value.asString());
             return Option.none();
         }
 
         @Override
-        public @NotNull Option<@NotNull Value> serialize(@Nullable String value) {
+        public @NotNull Option<@NotNull Value> raise(@Nullable String value) {
             if (value != null)
                 return Option.some(Value.asValue(value));
             return Option.none();
@@ -67,14 +76,14 @@ public interface Template<T> {
     @NotNull Template<@NotNull Boolean> BOOLEAN = new Template<>() {
 
         @Override
-        public @NotNull Option<@NotNull Boolean> parse(@NotNull Value value) {
+        public @NotNull Option<@NotNull Boolean> lower(@NotNull Value value) {
             if (value.isBoolean())
                 return Option.some(value.asBoolean());
             return Option.none();
         }
 
         @Override
-        public @NotNull Option<@NotNull Value> serialize(@Nullable Boolean value) {
+        public @NotNull Option<@NotNull Value> raise(@Nullable Boolean value) {
             if (value != null)
                 return Option.some(Value.asValue(value));
             return Option.none();
@@ -85,52 +94,115 @@ public interface Template<T> {
             return Description.BOOLEAN;
         }
     };
-    @NotNull Template<@NotNull Byte> BYTE = (Numerical<Byte>) value -> {
-        if (value.isNumber() && value.fitsInByte())
-            return Option.some(value.asByte());
-        return Option.none();
+    @NotNull Template<@NotNull Byte> BYTE = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<Byte> lower(@NotNull Value value) {
+            if (value.isNumber() && value.fitsInByte())
+                return Option.some(value.asByte());
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.BYTE;
+        }
     };
-    @NotNull Template<@NotNull Short> SHORT = (Numerical<Short>) value -> {
-        if (value.isNumber() && value.fitsInShort())
-            return Option.some(value.asShort());
-        return Option.none();
+    @NotNull Template<@NotNull Short> SHORT = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<Short> lower(@NotNull Value value) {
+            if (value.isNumber() && value.fitsInShort())
+                return Option.some(value.asShort());
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.SHORT;
+        }
     };
-    @NotNull Template<@NotNull Integer> INTEGER = (Numerical<Integer>) value -> {
-        if (value.isNumber() && value.fitsInInt())
-            return Option.some(value.asInt());
-        return Option.none();
+    @NotNull Template<@NotNull Integer> INTEGER = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<@NotNull Integer> lower(@NotNull Value value) {
+            if (value.isNumber() && value.fitsInInt())
+                return Option.some(value.asInt());
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.INTEGER;
+        }
     };
-    @NotNull Template<@NotNull Long> LONG = (Numerical<Long>) value -> {
-        if (value.isNumber() && value.fitsInLong())
-            return Option.some(value.asLong());
-        return Option.none();
+    @NotNull Template<@NotNull Long> LONG = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<Long> lower(@NotNull Value value) {
+            if (value.isNumber() && value.fitsInLong())
+                return Option.some(value.asLong());
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.LONG;
+        }
     };
-    @NotNull Template<@NotNull Float> FLOAT = (Numerical<Float>) value -> {
-        if (value.isNumber() && value.fitsInFloat())
-            return Option.some(value.asFloat());
-        return Option.none();
+    @NotNull Template<@NotNull Float> FLOAT = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<Float> lower(@NotNull Value value) {
+            if (value.isNumber() && value.fitsInFloat())
+                return Option.some(value.asFloat());
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.FLOAT;
+        }
     };
-    @NotNull Template<@NotNull Double> DOUBLE = (Numerical<Double>) value -> {
-        if (value.isNumber() && value.fitsInDouble())
-            return Option.some(value.asDouble());
-        return Option.none();
+    @NotNull Template<@NotNull Double> DOUBLE = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<Double> lower(@NotNull Value value) {
+            if (value.isNumber() && value.fitsInDouble())
+                return Option.some(value.asDouble());
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.DOUBLE;
+        }
     };
-    @NotNull Template<@NotNull BigInteger> BIG_INTEGER = (Numerical<BigInteger>) value -> {
-        if (value.isNumber() && value.fitsInBigInteger())
-            return Option.some(value.asBigInteger());
-        return Option.none();
+    @NotNull Template<@NotNull BigInteger> BIG_INTEGER = new Numerical<>() {
+
+        @Override
+        public @NotNull Option<BigInteger> lower(@NotNull Value value) {
+            if (value.isNumber() && value.fitsInBigInteger())
+                return Option.some(value.asBigInteger());
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.BIG_INTEGER;
+        }
     };
     @NotNull Template<@Nullable Void> UNDEFINED = new Template<>() {
 
         @Override
-        public @NotNull Option<Void> parse(@NotNull Value value) {
+        public @NotNull Option<Void> lower(@NotNull Value value) {
             if (Tau.isUndefined(value))
                 return Option.some(null);
             return Option.none();
         }
 
         @Override
-        public @NotNull Option<@NotNull Value> serialize(@Nullable Void value) {
+        public @NotNull Option<@NotNull Value> raise(@Nullable Void value) {
             return Option.some(Tau.undefined());
         }
 
@@ -142,14 +214,14 @@ public interface Template<T> {
     @NotNull Template<@Nullable Void> NULL = new Template<>() {
 
         @Override
-        public @NotNull Option<@Nullable Void> parse(@NotNull Value value) {
+        public @NotNull Option<@Nullable Void> lower(@NotNull Value value) {
             if (Tau.isNull(value))
                 return Option.some(null);
             return Option.none();
         }
 
         @Override
-        public @NotNull Option<@NotNull Value> serialize(@Nullable Void value) {
+        public @NotNull Option<@NotNull Value> raise(@Nullable Void value) {
             return Option.some(Value.asValue(null));
         }
 
@@ -161,13 +233,13 @@ public interface Template<T> {
     @NotNull Template<@NotNull Value> ANY = new Template<>() {
 
         @Override
-        public @NotNull Option<Value> parse(@NotNull Value value) {
+        public @NotNull Option<Value> lower(@NotNull Value value) {
             return Option.some(value);
         }
 
         @Override
         @SuppressWarnings("NullableProblems")
-        public @NotNull Option<@NotNull Value> serialize(@Nullable Value value) {
+        public @NotNull Option<@NotNull Value> raise(@Nullable Value value) {
             if (value != null)
                 return Option.some(value);
             return Option.none();
@@ -200,11 +272,18 @@ public interface Template<T> {
         return new Reference<>(type);
     }
 
-    static <T> @NotNull Template<@NotNull T[]> array(@NotNull Template<T> element,
+    static <T> @NotNull Template<T @NotNull[]> array(@NotNull Template<T> element,
                                                      @NotNull IntFunction<T @NotNull[]> constructor) {
         Objects.requireNonNull(element);
         Objects.requireNonNull(constructor);
         return new Array<>(element, constructor);
+    }
+
+    static <T, A> @NotNull Template<T> dispatch(@NotNull Property<T, A> discriminant,
+                                                @NotNull Function<A, Option<Record<? extends T>>> dispatch) {
+        Objects.requireNonNull(discriminant);
+        Objects.requireNonNull(dispatch);
+        return new Dispatch<>(discriminant, dispatch);
     }
 
     static <T, A> @NotNull Element<T, A> element(@NotNull Template<A> template,
@@ -230,20 +309,59 @@ public interface Template<T> {
         return new DiTuple<>(a, b, constructor);
     }
 
-    static <T, A> @NotNull Template<T> record(@NotNull Property<T, A> a,
-                                              @NotNull MonoConstructor<T, A> constructor) {
+    static <T, A> @NotNull Record<T> record(@NotNull Property<T, A> a,
+                                            @NotNull MonoConstructor<T, A> constructor) {
         Objects.requireNonNull(a);
         Objects.requireNonNull(constructor);
         return new MonoRecord<>(a, constructor);
     }
 
-    static <T, A, B> @NotNull Template<T> record(@NotNull Property<T, A> a,
-                                                 @NotNull Property<T, B> b,
-                                                 @NotNull DiConstructor<T, A, B> constructor) {
+    static <T, A, B> @NotNull Record<T> record(@NotNull Property<T, A> a,
+                                               @NotNull Property<T, B> b,
+                                               @NotNull DiConstructor<T, A, B> constructor) {
         Objects.requireNonNull(a);
         Objects.requireNonNull(b);
         Objects.requireNonNull(constructor);
         return new DiRecord<>(a, b, constructor);
+    }
+
+    static <T, A, B, C> @NotNull Record<T> record(@NotNull Property<T, A> a,
+                                                  @NotNull Property<T, B> b,
+                                                  @NotNull Property<T, C> c,
+                                                  @NotNull TriConstructor<T, A, B, C> constructor) {
+        Objects.requireNonNull(a);
+        Objects.requireNonNull(b);
+        Objects.requireNonNull(c);
+        Objects.requireNonNull(constructor);
+        return new TriRecord<>(a, b, c, constructor);
+    }
+
+    static <T, A, B, C, D> @NotNull Record<T> record(@NotNull Property<T, A> a,
+                                                     @NotNull Property<T, B> b,
+                                                     @NotNull Property<T, C> c,
+                                                     @NotNull Property<T, D> d,
+                                                     @NotNull TetraConstructor<T, A, B, C, D> constructor) {
+        Objects.requireNonNull(a);
+        Objects.requireNonNull(b);
+        Objects.requireNonNull(c);
+        Objects.requireNonNull(d);
+        Objects.requireNonNull(constructor);
+        return new TetraRecord<>(a, b, c, d, constructor);
+    }
+
+    static <T, A, B, C, D, E> @NotNull Record<T> record(@NotNull Property<T, A> a,
+                                                        @NotNull Property<T, B> b,
+                                                        @NotNull Property<T, C> c,
+                                                        @NotNull Property<T, D> d,
+                                                        @NotNull Property<T, E> e,
+                                                        @NotNull PentaConstructor<T, A, B, C, D, E> constructor) {
+        Objects.requireNonNull(a);
+        Objects.requireNonNull(b);
+        Objects.requireNonNull(c);
+        Objects.requireNonNull(d);
+        Objects.requireNonNull(e);
+        Objects.requireNonNull(constructor);
+        return new PentaRecord<>(a, b, c, d, e, constructor);
     }
 
     default <V> Property.Required<V, T> property(@NotNull String name,
@@ -259,14 +377,14 @@ public interface Template<T> {
         return new Template<>() {
 
             @Override
-            public @NotNull Option<V> parse(@NotNull Value value) {
-                return Template.this.parse(value)
+            public @NotNull Option<V> lower(@NotNull Value value) {
+                return Template.this.lower(value)
                         .map(forward);
             }
 
             @Override
-            public @NotNull Option<@NotNull Value> serialize(@Nullable V value) {
-                return Template.this.serialize(backward.apply(value));
+            public @NotNull Option<@NotNull Value> raise(@Nullable V value) {
+                return Template.this.raise(backward.apply(value));
             }
 
             @Override
@@ -283,15 +401,15 @@ public interface Template<T> {
         return new Template<>() {
 
             @Override
-            public @NotNull Option<V> parse(@NotNull Value value) {
-                return Template.this.parse(value)
+            public @NotNull Option<V> lower(@NotNull Value value) {
+                return Template.this.lower(value)
                         .flatMap(forward);
             }
 
             @Override
-            public @NotNull Option<@NotNull Value> serialize(@Nullable V value) {
+            public @NotNull Option<@NotNull Value> raise(@Nullable V value) {
                 return backward.apply(value)
-                        .flatMap(Template.this::serialize);
+                        .flatMap(Template.this::raise);
             }
 
             @Override
@@ -308,15 +426,15 @@ public interface Template<T> {
         return new Template<>() {
 
             @Override
-            public @NotNull Option<T> parse(@NotNull Value value) {
-                return Template.this.parse(value)
+            public @NotNull Option<T> lower(@NotNull Value value) {
+                return Template.this.lower(value)
                         .filter(forward);
             }
 
             @Override
-            public @NotNull Option<@NotNull Value> serialize(@Nullable T value) {
+            public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
                 if (backward.test(value))
-                    return Template.this.serialize(value);
+                    return Template.this.raise(value);
                 return Option.none();
             }
 
@@ -327,13 +445,9 @@ public interface Template<T> {
         };
     }
 
-    @NotNull Option<T> parse(@NotNull Value value);
+    @NotNull Option<T> lower(@NotNull Value value);
 
-    @NotNull Option<@NotNull Value> serialize(@Nullable T value);
-
-    default Description description() {
-        return this.description(Scope.hashScope());
-    }
+    @NotNull Option<@NotNull Value> raise(@Nullable T value);
 
     @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points);
 }
