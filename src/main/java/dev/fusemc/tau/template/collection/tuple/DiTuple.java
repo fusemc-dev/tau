@@ -1,7 +1,8 @@
 package dev.fusemc.tau.template.collection.tuple;
 
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
+import dev.fusemc.tau.description.Origin;
 import dev.fusemc.tau.element.Element;
 import dev.fusemc.tau.element.constructor.DiConstructor;
 import com.manchickas.optionated.Option;
@@ -39,7 +40,7 @@ public record DiTuple<T, A, B>(@NotNull Element<T, A> a,
     }
 
     @Override
-    public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Tuple.description(points, this.a, this.b);
+    public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+        return Description.attach(Tuple.description(points, this.a, this.b), Origin.SCHEMA);
     }
 }

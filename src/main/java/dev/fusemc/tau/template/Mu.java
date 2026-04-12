@@ -1,9 +1,10 @@
 package dev.fusemc.tau.template;
 
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
+import dev.fusemc.tau.description.Origin;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,12 +39,12 @@ public final class Mu<T> implements Template<T> {
 
     @Override
     @SuppressWarnings("ConstantValue")
-    public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
+    public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
         if (this.delegate == null)
             throw new AssertionError("Attempted to describe() a Mu within the constructor function.");
         if (points.add(this))
-            return this.delegate.description(points.branch());
-        return Description.ELLIPSIS;
+            return Description.attach(this.delegate.describe(points.branch()), Origin.SCHEMA);
+        return Description.attach(Description.ELLIPSIS, Origin.SCHEMA);
     }
 
     @Override

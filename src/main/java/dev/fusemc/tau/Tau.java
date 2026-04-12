@@ -1,6 +1,8 @@
 package dev.fusemc.tau;
 
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.description.Origin;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -16,12 +18,13 @@ public final class Tau {
 
     @ApiStatus.Internal
     private static final @Nullable Object UNDEFINED_SENTINEL = Tau.loadUndefined();
+    private static final int TUPLE_LENGTH_THRESHOLD = 5;
 
     private Tau() {
         throw new UnsupportedOperationException();
     }
 
-    /// Attempts to parse the provided [Value] using the provided
+    /// Attempts to lower the provided [Value] using the provided
     /// [Template].
     ///
     /// If the provided `value` does not satisfy the requested [Template],
@@ -34,13 +37,34 @@ public final class Tau {
     /// @since `0.1.0`
     /// @see Template
     /// @see TypeException
-    public static <T> T expect(@NotNull Template<T> template, @NotNull Value value) {
+    public static <T> T lower(@NotNull Template<T> template, @NotNull Value value) {
         Objects.requireNonNull(template);
         Objects.requireNonNull(value);
         var option = template.lower(value);
         if (option instanceof Option.Some<T>(var result))
             return result;
-        throw new TypeException(template.description(Scope.hashScope()), Tau.describe(value));
+        throw new TypeException(Tau.describe(value), template.describe(Scope.hashScope()));
+    }
+
+    /// Attempts to raise the provided [T] using the provided
+    /// [Template].
+    ///
+    /// If the provided `value` does not satisfy the requested [Template],
+    /// a [TypeException] is thrown in the form of:
+    ///
+    /// ```
+    /// Type '...' is not assignable to type '...'.
+    /// ```
+    ///
+    /// @since `0.1.0`
+    /// @see Template
+    /// @see TypeException
+    public static <T> Value raise(@NotNull Template<T> template, @Nullable T value) {
+        Objects.requireNonNull(template);
+        var option = template.raise(value);
+        if (option instanceof Option.Some<Value>(var result))
+            return result;
+        throw new TypeException(Tau.describe(value), template.describe(Scope.hashScope()));
     }
 
     /// Returns an [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type) [Value].
@@ -85,85 +109,282 @@ public final class Tau {
         return value.isNull();
     }
 
-    public static @NotNull Description describe(@NotNull Value value) {
+    public static @NotNull Observation describe(@Nullable Object o) {
+        return Tau.describe(o, Scope.hashScope(), true);
+    }
+
+    private static @NotNull Observation describe(@Nullable Object o,
+                                                 @NotNull Scope<@NotNull Object> visited,
+                                                 boolean constant) {
+        if (o != null) {
+            if (o instanceof Number) {
+                if (constant) {
+                    return switch (o) {
+                        case Byte _    -> Description.attach(Description.BYTE,    Origin.HOST);
+                        case Short _   -> Description.attach(Description.SHORT,   Origin.HOST);
+                        case Integer _ -> Description.attach(Description.INTEGER, Origin.HOST);
+                        case Long _    -> Description.attach(Description.LONG,    Origin.HOST);
+                        case Float _   -> Description.attach(Description.FLOAT,   Origin.HOST);
+                        case Double _  -> Description.attach(Description.DOUBLE,  Origin.HOST);
+                        default -> Description.attach(Description.NUMBER,  Origin.HOST);
+                    };
+                }
+                return Description.attach(Description.NUMBER, Origin.HOST);
+            }
+            if (o instanceof String literal) {
+                if (constant)
+                    return Description.attach(Description.literal(literal), Origin.HOST);
+                return Description.attach(Description.STRING, Origin.HOST);
+            }
+            if (o instanceof Boolean)
+                return Description.attach(Description.BOOLEAN, Origin.HOST);
+            if (o instanceof byte[] bytes) {
+                if (bytes.length > 0 && bytes.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                    var buffer = new Description[bytes.length];
+                    Arrays.fill(buffer, Description.BYTE);
+                    return Description.attach(Description.concat(
+                            Description.delimiter('['),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(']')
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.concat(
+                        Description.BYTE,
+                        Description.delimiter("[]")
+                ), Origin.HOST);
+            }
+            if (o instanceof short[] shorts) {
+                if (shorts.length > 0 && shorts.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                    var buffer = new Description[shorts.length];
+                    Arrays.fill(buffer, Description.SHORT);
+                    return Description.attach(Description.concat(
+                            Description.delimiter('['),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(']')
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.concat(
+                        Description.SHORT,
+                        Description.delimiter("[]")
+                ), Origin.HOST);
+            }
+            if (o instanceof int[] ints) {
+                if (ints.length > 0 && ints.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                    var buffer = new Description[ints.length];
+                    Arrays.fill(buffer, Description.INTEGER);
+                    return Description.attach(Description.concat(
+                            Description.delimiter('['),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(']')
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.concat(
+                        Description.INTEGER,
+                        Description.delimiter("[]")
+                ), Origin.HOST);
+            }
+            if (o instanceof long[] longs) {
+                if (longs.length > 0 && longs.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                    var buffer = new Description[longs.length];
+                    Arrays.fill(buffer, Description.LONG);
+                    return Description.attach(Description.concat(
+                            Description.delimiter('['),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(']')
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.concat(
+                        Description.LONG,
+                        Description.delimiter("[]")
+                ), Origin.HOST);
+            }
+            if (o instanceof float[] floats) {
+                if (floats.length > 0 && floats.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                    var buffer = new Description[floats.length];
+                    Arrays.fill(buffer, Description.FLOAT);
+                    return Description.attach(Description.concat(
+                            Description.delimiter('['),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(']')
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.concat(
+                        Description.FLOAT,
+                        Description.delimiter("[]")
+                ), Origin.HOST);
+            }
+            if (o instanceof double[] doubles) {
+                if (doubles.length > 0 && doubles.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                    var buffer = new Description[doubles.length];
+                    Arrays.fill(buffer, Description.DOUBLE);
+                    return Description.attach(Description.concat(
+                            Description.delimiter('['),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(']')
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.concat(
+                        Description.DOUBLE,
+                        Description.delimiter("[]")
+                ), Origin.HOST);
+            }
+            if (o instanceof boolean[] booleans) {
+                if (booleans.length > 0 && booleans.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                    var buffer = new Description[booleans.length];
+                    Arrays.fill(buffer, Description.BOOLEAN);
+                    return Description.attach(Description.concat(
+                            Description.delimiter('['),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(']')
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.concat(
+                        Description.BOOLEAN,
+                        Description.delimiter("[]")
+                ), Origin.HOST);
+            }
+            if (o instanceof Object[] os) {
+                if (visited.add(o)) {
+                    if (os.length == 0)
+                        return Description.attach(Description.concat(
+                                Description.ANY,
+                                Description.delimiter("[]")
+                        ), Origin.HOST);
+                    if (os.length < Tau.TUPLE_LENGTH_THRESHOLD) {
+                        var buffer = new Description[os.length];
+                        for (var i = 0; i < os.length; i++)
+                            buffer[i] = Tau.describe(os[i], visited.branch(), constant);
+                        return Description.attach(Description.concat(
+                                Description.delimiter('['),
+                                Description.join(
+                                        Description.delimiter(", "),
+                                        buffer
+                                ),
+                                Description.delimiter(']')
+                        ), Origin.HOST);
+                    }
+                    var buffer = new LinkedHashSet<Description>();
+                    for (var element : os)
+                        buffer.add(Tau.describe(element, visited.branch(), false));
+                    return Description.attach(Description.concat(
+                            Description.concat(
+                                    Description.delimiter('('),
+                                    Description.join(
+                                            Description.delimiter(" | "),
+                                            buffer.toArray(Description[]::new)
+                                    ),
+                                    Description.delimiter(')')
+                            ),
+                            Description.delimiter("[]")
+                    ), Origin.HOST);
+                }
+                return Description.attach(Description.ELLIPSIS, Origin.HOST);
+            }
+            if (o instanceof Value value)
+                return Description.attach(Tau.describe(value, visited, constant), Origin.HOST);
+            return Description.attach(Description.reference(o.getClass()), Origin.HOST);
+        }
+        return Description.attach(Description.NULL, Origin.HOST);
+    }
+
+    private static @NotNull Observation describe(@NotNull Value value) {
         return Tau.describe(value, Scope.hashScope(), true);
     }
 
-    @ApiStatus.Internal
-    private static @NotNull Description describe(@NotNull Value value,
-                                                 @NotNull Scope<Value> visited,
+    private static @NotNull Observation describe(@NotNull Value value,
+                                                 @NotNull Scope<@NotNull Object> visited,
                                                  boolean constant) {
-        Objects.requireNonNull(value);
-        Objects.requireNonNull(visited);
         if (value.isNumber()) {
             if (constant) {
                 if (value.fitsInByte())
-                    return Description.BYTE;
+                    return Description.attach(Description.BYTE, Origin.POLYGLOT);
                 if (value.fitsInShort())
-                    return Description.SHORT;
+                    return Description.attach(Description.SHORT, Origin.POLYGLOT);
                 if (value.fitsInInt())
-                    return Description.INTEGER;
+                    return Description.attach(Description.INTEGER, Origin.POLYGLOT);
                 if (value.fitsInLong())
-                    return Description.LONG;
-                if (value.fitsInBigInteger())
-                    return Description.BIG_INTEGER;
+                    return Description.attach(Description.LONG, Origin.POLYGLOT);
                 if (value.fitsInFloat())
-                    return Description.FLOAT;
-                return Description.DOUBLE;
+                    return Description.attach(Description.FLOAT, Origin.POLYGLOT);
+                if (value.fitsInDouble())
+                    return Description.attach(Description.DOUBLE, Origin.POLYGLOT);
+                return Description.attach(Description.NUMBER, Origin.POLYGLOT);
             }
-            return Description.NUMBER;
+            return Description.attach(Description.NUMBER, Origin.POLYGLOT);
         }
         if (value.isString()) {
             if (constant)
-                return Description.literal(value.asString());
-            return Description.STRING;
+                return Description.attach(Description.literal(value.asString()), Origin.POLYGLOT);
+            return Description.attach(Description.STRING, Origin.POLYGLOT);
         }
         if (value.isBoolean())
-            return Description.BOOLEAN;
+            return Description.attach(Description.BOOLEAN, Origin.POLYGLOT);
         if (Tau.isUndefined(value))
-            return Description.UNDEFINED;
+            return Description.attach(Description.UNDEFINED, Origin.POLYGLOT);
         if (Tau.isNull(value))
-            return Description.NULL;
+            return Description.attach(Description.NULL, Origin.POLYGLOT);
         if (value.hasArrayElements()) {
             if (visited.add(value)) {
                 var length = (int) value.getArraySize();
                 if (length == 0)
-                    return Description.concat(
+                    return Description.attach(Description.concat(
                             Description.ANY,
                             Description.delimiter("[]")
-                    );
-                if (length <= 5) {
+                    ), Origin.POLYGLOT);
+                if (length < Tau.TUPLE_LENGTH_THRESHOLD) {
                     var buffer = new Description[length];
                     for (var i = 0; i < length; i++) {
                         var element = value.getArrayElement(i);
                         buffer[i] = Tau.describe(element, visited.branch(), constant);
                     }
-                    return Description.concat(
+                    return Description.attach(Description.concat(
                             Description.delimiter('['),
-                            Description.join(Description.delimiter(", "), buffer),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
                             Description.delimiter(']')
-                    );
+                    ), Origin.POLYGLOT);
                 }
                 var buffer = new LinkedHashSet<Description>();
                 for (var i = 0; i < length; i++) {
                     var element = value.getArrayElement(i);
-                    var description = Tau.describe(element, visited.branch(), false);
-                    buffer.add(description);
+                    buffer.add(Tau.describe(element, visited.branch(), false));
                 }
-                var result = buffer.toArray(Description[]::new);
-                return Description.concat(
+                return Description.attach(Description.concat(
                         Description.concat(
                                 Description.delimiter('('),
                                 Description.join(
                                         Description.delimiter(" | "),
-                                        result
+                                        buffer.toArray(Description[]::new)
                                 ),
                                 Description.delimiter(')')
                         ),
                         Description.delimiter("[]")
-                );
+                ), Origin.POLYGLOT);
             }
-            return Description.ELLIPSIS;
+            return Description.attach(Description.ELLIPSIS, Origin.POLYGLOT);
         }
         if (value.hasMembers()) {
             if (visited.add(value)) {
@@ -179,128 +400,20 @@ public final class Tau {
                             description
                     );
                 }
-                return Description.concat(
+                return Description.attach(Description.concat(
                         Description.delimiter('{'),
-                        Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter('}')
-                );
-            }
-            return Description.ELLIPSIS;
-        }
-        if (value.isHostObject()) {
-            var wrapped = value.asHostObject();
-            if (wrapped instanceof Value[] array) {
-                if (array.length == 0)
-                    return Description.concat(
-                            Description.ANY,
-                            Description.delimiter("[]")
-                    );
-                if (array.length <= 5) {
-                    var buffer = new Description[array.length];
-                    for (var i = 0; i < array.length; i++) {
-                        var element = array[i];
-                        buffer[i] = Tau.describe(element, visited.branch(), constant);
-                    }
-                    return Description.concat(
-                            Description.delimiter('['),
-                            Description.join(Description.delimiter(", "), buffer),
-                            Description.delimiter(']')
-                    );
-                }
-                var buffer = new LinkedHashSet<Description>();
-                for (var element : array) {
-                    var description = Tau.describe(element, visited.branch(), false);
-                    buffer.add(description);
-                }
-                var result = buffer.toArray(Description[]::new);
-                return Description.concat(
                         Description.join(
-                                Description.delimiter('('),
-                                Description.join(
-                                        Description.delimiter(" | "),
-                                        result
-                                ),
-                                Description.delimiter(')')
+                                Description.delimiter(", "),
+                                buffer
                         ),
-                        Description.delimiter("[]")
-                );
-            }
-            if (wrapped instanceof Collection<?> collection) {
-                var length = collection.size();
-                if (length == 0)
-                    return Description.concat(
-                            Description.ANY,
-                            Description.delimiter("[]")
-                    );
-                if (length <= 5) {
-                    var buffer = new Description[length];
-                    var iterator = collection.iterator();
-                    for (var i = 0; iterator.hasNext(); i++) {
-                        var element = iterator.next();
-                        if (element instanceof Value v) {
-                            buffer[i] = Tau.describe(v, visited.branch(), constant);
-                            continue;
-                        }
-                        return Description.ELLIPSIS;
-                    }
-                    return Description.concat(
-                            Description.delimiter('['),
-                            Description.join(Description.delimiter(", "), buffer),
-                            Description.delimiter(']')
-                    );
-                }
-                var buffer = new LinkedHashSet<Description>();
-                for (var element : collection) {
-                    if (element instanceof Value v) {
-                        var description = Tau.describe(v, visited.branch(), false);
-                        buffer.add(description);
-                        continue;
-                    }
-                    return Description.ELLIPSIS;
-                }
-                var result = buffer.toArray(Description[]::new);
-                return Description.concat(
-                        Description.concat(
-                                Description.delimiter('('),
-                                Description.join(
-                                        Description.delimiter(" | "),
-                                        result
-                                ),
-                                Description.delimiter(')')
-                        ),
-                        Description.delimiter("[]")
-                );
-            }
-            if (wrapped instanceof Map<?, ?> map) {
-                var buffer = new Description[map.size()];
-                var i = 0;
-                for (var entry : map.entrySet()) {
-                    if (entry.getKey() instanceof String key) {
-                        if (entry.getValue() instanceof Value member) {
-                            var description = Tau.describe(member, visited.branch(), constant);
-                            buffer[i++] = Description.concat(
-                                    Description.literal(key),
-                                    Description.delimiter(": "),
-                                    description
-                            );
-                            continue;
-                        }
-                        buffer[i++] = Description.concat(
-                                Description.literal(key),
-                                Description.delimiter(": "),
-                                Description.ELLIPSIS
-                        );
-                    }
-                }
-                return Description.concat(
-                        Description.delimiter('{'),
-                        Description.join(Description.delimiter(", "), Arrays.copyOf(buffer, i)),
                         Description.delimiter('}')
-                );
+                ), Origin.POLYGLOT);
             }
-            return Description.reference(wrapped.getClass());
+            return Description.attach(Description.ELLIPSIS, Origin.POLYGLOT);
         }
-        return Description.UNKNOWN;
+        if (value.isHostObject())
+            return Description.attach(Tau.describe((Object) value.asHostObject(), visited, constant), Origin.POLYGLOT);
+        return Description.attach(Description.UNKNOWN, Origin.POLYGLOT);
     }
 
     @ApiStatus.Internal

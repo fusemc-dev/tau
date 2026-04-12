@@ -1,6 +1,6 @@
 package dev.fusemc.tau.element;
 
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
@@ -72,6 +72,6 @@ public record Element<T, A>(@NotNull Template<A> template,
     }
 
     public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return this.template.description(points);
+        return this.template.describe(points);
     }
 }

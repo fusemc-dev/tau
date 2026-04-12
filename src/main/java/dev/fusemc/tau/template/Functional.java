@@ -1,10 +1,12 @@
 package dev.fusemc.tau.template;
 
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.TypeException;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
+import dev.fusemc.tau.description.Origin;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -172,8 +174,8 @@ public final class Functional<T> implements Template<T> {
     }
 
     @Override
-    public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.concat(
+    public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+        return Description.attach(Description.concat(
                 Description.concat(
                         Description.delimiter('('),
                         Description.join(Description.delimiter(", "), Arrays.stream(this.target.getParameters())
@@ -185,8 +187,8 @@ public final class Functional<T> implements Template<T> {
                         Description.delimiter(')')
                 ),
                 Description.delimiter(" => "),
-                this.template.description(points)
-        );
+                this.template.describe(points)
+        ), Origin.SCHEMA);
     }
 
     private record Handler(@NotNull Method target, @NotNull Template<?> template,
@@ -321,11 +323,11 @@ public final class Functional<T> implements Template<T> {
                 return this.implementation.equals(other);
             }
             if (method.equals(this.target)) {
-                var value = Tau.expect(this.template, this.implementation.execute(this.spreadVariadic(args)));
+                var value = Tau.lower(this.template, this.implementation.execute(this.spreadVariadic(args)));
                 var option = Handler.cast(this.target.getReturnType(), value);
                 if (option instanceof Option.Some<?>(var result))
                     return result;
-                throw new AssertionError();
+                throw new TypeException(Tau.describe(value), Functional.describe(this.target.getGenericReturnType(), false));
             }
             throw new AssertionError();
         }
@@ -334,8 +336,7 @@ public final class Functional<T> implements Template<T> {
         private Object @NotNull [] spreadVariadic(Object @NotNull [] args) {
             if (this.target.isVarArgs()) {
                 var variadic = Handler.box(args[args.length - 1]);
-                var buffer = new Object[args.length + variadic.length - 1];
-                System.arraycopy(args, 0, buffer, 0, args.length - 1);
+                var buffer = Arrays.copyOf(args, args.length + variadic.length - 1);
                 System.arraycopy(variadic, 0, buffer, args.length - 1, variadic.length);
                 return buffer;
             }

@@ -1,9 +1,10 @@
 package dev.fusemc.tau.template.collection;
 
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.description.Origin;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
@@ -92,14 +93,14 @@ public record Array<T>(@NotNull Template<T> template,
     }
 
     @Override
-    public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.concat(
+    public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+        return Description.attach(Description.concat(
                 Description.concat(
                         Description.delimiter("("),
-                        this.template.description(points),
+                        this.template.describe(points),
                         Description.delimiter(')')
                 ),
                 Description.delimiter("[]")
-        );
+        ), Origin.SCHEMA);
     }
 }

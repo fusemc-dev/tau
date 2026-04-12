@@ -1,7 +1,9 @@
-package dev.fusemc.tau.description;
+package dev.fusemc.tau.description.type;
 
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.description.Origin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -15,13 +17,13 @@ public record Join(@NotNull Description delimiter,
     }
 
     @Override
-    public @NotNull String stringify() {
+    public @NotNull String stringify(@Nullable Origin enclosing) {
         var buffer = new StringBuilder();
         for (var i = 0; i < this.descriptions.length; i++) {
             var description = this.descriptions[i];
             if (i > 0)
-                buffer.append(this.delimiter.stringify());
-            buffer.append(description.stringify());
+                buffer.append(this.delimiter.stringify(enclosing));
+            buffer.append(description.stringify(enclosing));
         }
         return buffer.toString();
     }

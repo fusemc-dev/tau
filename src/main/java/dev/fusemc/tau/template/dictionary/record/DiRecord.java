@@ -1,7 +1,8 @@
 package dev.fusemc.tau.template.dictionary.record;
 
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
+import dev.fusemc.tau.description.Origin;
 import dev.fusemc.tau.element.constructor.DiConstructor;
 import dev.fusemc.tau.element.Property;
 import com.manchickas.optionated.Option;
@@ -10,7 +11,6 @@ import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 public record DiRecord<T, A, B>(
@@ -49,7 +49,7 @@ public record DiRecord<T, A, B>(
     }
 
     @Override
-    public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Record.description(points, this.a, this.b);
+    public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+        return Description.attach(Record.description(points, this.a, this.b), Origin.SCHEMA);
     }
 }

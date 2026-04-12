@@ -1,10 +1,12 @@
-package dev.fusemc.tau.description.primitive;
+package dev.fusemc.tau.description.type.primitive;
 
 import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Documented;
+import dev.fusemc.tau.description.Origin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -17,7 +19,7 @@ public record Reference(@NotNull Class<?> type) implements Description {
     }
 
     @Override
-    public @NotNull String stringify() {
+    public @NotNull String stringify(@Nullable Origin enclosing) {
         var documented = this.type.getAnnotation(Documented.class);
         if (documented != null) {
             var type = documented.value();

@@ -1,6 +1,6 @@
 package dev.fusemc.tau.element;
 
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
@@ -119,7 +119,7 @@ public sealed abstract class Property<T, A> {
             return Description.concat(
                     Description.literal(this.name),
                     Description.delimiter(": "),
-                    this.template.description(points)
+                    this.template.describe(points)
             );
         }
     }
@@ -155,7 +155,7 @@ public sealed abstract class Property<T, A> {
             return Description.concat(
                     Description.literal(this.name),
                     Description.delimiter("?: "),
-                    this.template.description(points)
+                    this.template.describe(points)
             );
         }
     }

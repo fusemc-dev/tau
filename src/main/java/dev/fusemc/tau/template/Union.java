@@ -1,9 +1,10 @@
 package dev.fusemc.tau.template;
 
-import dev.fusemc.tau.Description;
+import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.description.Origin;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,9 +39,12 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
     }
 
     @Override
-    public @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.join(Description.delimiter(" | "), Arrays.stream(this.alternatives)
-                .map(t -> t.description(points))
-                .toArray(Description[]::new));
+    public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+        return Description.attach(Description.join(
+                Description.delimiter(" | "),
+                Arrays.stream(this.alternatives)
+                    .map(t -> t.describe(points))
+                    .toArray(Description[]::new)
+        ), Origin.SCHEMA);
     }
 }

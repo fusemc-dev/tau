@@ -1,12 +1,11 @@
-package dev.fusemc.tau;
+package dev.fusemc.tau.description;
 
-import dev.fusemc.tau.description.Concat;
-import dev.fusemc.tau.description.Join;
-import dev.fusemc.tau.description.primitive.Delimiter;
-import dev.fusemc.tau.description.primitive.Keyword;
-import dev.fusemc.tau.description.primitive.Literal;
-import dev.fusemc.tau.description.primitive.Reference;
+import dev.fusemc.tau.description.type.Attached;
+import dev.fusemc.tau.description.type.Join;
+import dev.fusemc.tau.description.type.Concat;
+import dev.fusemc.tau.description.type.primitive.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -27,7 +26,13 @@ public interface Description {
     @NotNull Description UNDEFINED   = Description.keyword("undefined");
     @NotNull Description ANY         = Description.keyword("any");
     @NotNull Description UNKNOWN     = Description.keyword("unknown");
-    @NotNull Description ELLIPSIS = Description.delimiter("...");
+    @NotNull Description ELLIPSIS    = Description.delimiter("...");
+
+    static @NotNull Description attach(@NotNull Description description, @NotNull Origin origin) {
+        Objects.requireNonNull(description);
+        Objects.requireNonNull(origin);
+        return new Attached(description, origin);
+    }
 
     static @NotNull Description delimiter(char delimiter) {
         return new Delimiter(String.valueOf(delimiter));
@@ -64,5 +69,5 @@ public interface Description {
         return new Join(delimiter, Arrays.copyOf(descriptions, descriptions.length));
     }
 
-    @NotNull String stringify();
+    @NotNull String stringify(@Nullable Origin enclosing);
 }
