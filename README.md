@@ -14,9 +14,11 @@ origins, Tau is a _general-purpose_ library and doesn't rely on Fuse in any way.
 
 ## Templates
 
-> Throughout this section, the `/.../` circumfix syntax is used to denote Polyglot `Value` literals. `/42/` thus defines a Polyglot `Value` of `42`.
+> [!NOTE]
+> Throughout this section, the `/.../` circumfix syntax is used to denote `Value` literals. `/42/` thus defines a `Value` of `42`. You will shortly discover that
+> the `/.../` syntax isn't used coincidentally.
 
-Type validation in Tau is done through [Template](./src/main/java/dev/fusemc/tau/Template.java)s. A template may be thought of
+Type validation in Tau is done through [Template](https://fusemc.dev/tau/blob/master/src/main/java/dev/fusemc/tau/Template.java)s. A template may be thought of
 as a _reusable_, _**bidirectional**_ type-schema, that is also capable of _describing_ itself.
 
 A template functions as a type-safe mapping from a Polyglot `Value` to some type `T`, **and vice versa**. The former operation
