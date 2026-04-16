@@ -25,9 +25,9 @@ A template functions as a type-safe mapping from a Polyglot `Value` to some type
 is referred to as `parse`, and the latter as `serialize`. Both operations produce an `Option` which signals
 whether the conversion was successful.
 
-> `Tau.expect()` is a convenient way to assert that an operation was successful, and throw
+> `Tau.lower()`/`Tau.raise()` are aconvenient ways to assert that the respective operation was successful, and throw
 > an _absurdly pretty_ exception if it wasn't:
 > 
 > ```java
-> Tau.expect(Tau.INTEGER, /42/);
+> Tau.lower(Tau.STRING, /"Marie"/);
 > ```
