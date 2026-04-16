@@ -21,11 +21,12 @@ origins, Tau is a _general-purpose_ library and doesn't rely on Fuse in any way.
 Type validation in Tau is done through [Template](https://fusemc.dev/tau/blob/master/src/main/java/dev/fusemc/tau/Template.java)s. A template may be thought of
 as a _reusable_, _**bidirectional**_ type-schema, that is also capable of _describing_ itself.
 
-A template functions as a type-safe mapping from a Polyglot `Value` to some type `T`, **and vice versa**. The former operation
-is referred to as `parse`, and the latter as `serialize`. Both operations produce an `Option` which signals
+A template functions as a type-safe mapping from a `Value` to some type `T`, and **vice versa**. The former operation
+is referred to as `lower`, and the latter as `raise`. Both operations produce an `Option` which signals
 whether the conversion was successful.
 
-> `Tau.lower()`/`Tau.raise()` are aconvenient ways to assert that the respective operation was successful, and throw
+> [!TIP]
+> `Tau.lower()`/`Tau.raise()` are convenient ways to assert that the respective operation was successful, throwing
 > an _absurdly pretty_ exception if it wasn't:
 > 
 > ```java
