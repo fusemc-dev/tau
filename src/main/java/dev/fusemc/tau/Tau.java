@@ -3,7 +3,11 @@ package dev.fusemc.tau;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.proxy.Dictionary;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyObject;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +18,8 @@ import java.util.*;
 ///
 /// **Tau** (τ) is a runtime [Polyglot](https://www.graalvm.org/latest/reference-manual/polyglot-programming/) [Value] type-validation library, built
 /// originally for [Fuse](https://fusemc.dev).
+///
+/// @since `0.1.0`
 public final class Tau {
 
     @ApiStatus.Internal
@@ -24,19 +30,6 @@ public final class Tau {
         throw new UnsupportedOperationException();
     }
 
-    /// Attempts to lower the provided [Value] using the provided
-    /// [Template].
-    ///
-    /// If the provided `value` does not satisfy the requested [Template],
-    /// a [TypeException] is thrown in the form of:
-    ///
-    /// ```
-    /// Type '...' is not assignable to type '...'.
-    /// ```
-    ///
-    /// @since `0.1.0`
-    /// @see Template
-    /// @see TypeException
     public static <T> T lower(@NotNull Template<T> template, @NotNull Value value) {
         Objects.requireNonNull(template);
         Objects.requireNonNull(value);
@@ -109,11 +102,11 @@ public final class Tau {
         return value.isNull();
     }
 
-    public static @NotNull Observation describe(@Nullable Object o) {
+    public static @NotNull Description describe(@Nullable Object o) {
         return Tau.describe(o, Scope.hashScope(), true);
     }
 
-    private static @NotNull Observation describe(@Nullable Object o,
+    private static @NotNull Description describe(@Nullable Object o,
                                                  @NotNull Scope<@NotNull Object> visited,
                                                  boolean constant) {
         if (o != null) {
@@ -308,11 +301,11 @@ public final class Tau {
         return Description.attach(Description.NULL, Origin.HOST);
     }
 
-    private static @NotNull Observation describe(@NotNull Value value) {
+    private static @NotNull Description describe(@NotNull Value value) {
         return Tau.describe(value, Scope.hashScope(), true);
     }
 
-    private static @NotNull Observation describe(@NotNull Value value,
+    private static @NotNull Description describe(@NotNull Value value,
                                                  @NotNull Scope<@NotNull Object> visited,
                                                  boolean constant) {
         if (value.isNumber()) {
@@ -410,6 +403,35 @@ public final class Tau {
                 ), Origin.POLYGLOT);
             }
             return Description.attach(Description.ELLIPSIS, Origin.POLYGLOT);
+        }
+        if (value.isProxyObject()) {
+            var proxy = value.asProxyObject();
+            if (proxy instanceof Dictionary dictionary) {
+                if (visited.add(value)) {
+                    var keys = dictionary.getMemberKeys();
+                    var buffer = new Description[(int) keys.getSize()];
+                    for (var i = 0; i < keys.getSize(); i++) {
+                        var key = (String) keys.get(i);
+                        var member = dictionary.getMember(key);
+                        var description = Tau.describe(member, visited.branch(), constant);
+                        buffer[i] = Description.concat(
+                                Description.literal(key),
+                                Description.delimiter(": "),
+                                description
+                        );
+                    }
+                    return Description.attach(Description.concat(
+                            Description.delimiter('{'),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter('}')
+                    ), Origin.POLYGLOT);
+                }
+                return Description.attach(Description.ELLIPSIS, Origin.POLYGLOT);
+            }
+            return Description.attach(Description.UNKNOWN, Origin.POLYGLOT);
         }
         if (value.isHostObject())
             return Description.attach(Tau.describe((Object) value.asHostObject(), visited, constant), Origin.POLYGLOT);

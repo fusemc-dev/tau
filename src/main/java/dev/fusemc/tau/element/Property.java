@@ -4,8 +4,10 @@ import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.proxy.Dictionary;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,6 +22,7 @@ import java.util.function.Supplier;
 /// be [Required] or [Optional].
 ///
 /// @see Element
+/// @see Dictionary
 public sealed abstract class Property<T, A> {
 
     protected final @NotNull String name;
@@ -41,6 +44,19 @@ public sealed abstract class Property<T, A> {
             if (member != null)
                 return this.template.lower(member);
             return this.missing();
+        }
+        if (value.isProxyObject()) {
+            var proxy = value.asProxyObject();
+            if (proxy instanceof ProxyObject po) {
+                if (po.hasMember(this.name)) {
+                    var member = po.getMember(this.name);
+                    if (member instanceof Value v)
+                        return this.template.lower(v);
+                    return Option.none();
+                }
+                return this.missing();
+            }
+            return Option.none();
         }
         if (value.isHostObject()) {
             var host = value.asHostObject();

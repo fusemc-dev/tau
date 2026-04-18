@@ -5,13 +5,13 @@ import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import dev.fusemc.tau.element.Property;
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.proxy.Dictionary;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -38,17 +38,18 @@ public interface Record<T> extends Template<T> {
                                             @NotNull Property<? super T, ?> @NotNull... properties) {
         Objects.requireNonNull(instance);
         Objects.requireNonNull(properties);
-        var buffer = new HashMap<>(properties.length);
+        var buffer = Dictionary.builder(properties.length);
         for (var property : properties) {
             var name = property.name();
             var option = property.raise(instance);
             if (option instanceof Option.Some<Value>(var result)) {
-                buffer.put(name, result);
+                buffer.append(name, result);
                 continue;
             }
             return Option.none();
         }
-        return Option.some(Value.asValue(Map.copyOf(buffer)));
+        var dict = buffer.build();
+        return Option.some(Value.asValue(dict));
     }
 
     static @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points,
