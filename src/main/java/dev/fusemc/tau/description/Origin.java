@@ -38,6 +38,16 @@ public interface Origin {
             return STYLE.wrap('<') + description.stringify(this) + STYLE.wrap('>');
         }
     };
+    @NotNull Origin REFLECTION = new Origin() {
+
+        private static final Style STYLE = Charcoal.foreground(0xCF8E6D);
+
+        @Override
+        public @NotNull String annotate(@NotNull Description description) {
+            Objects.requireNonNull(description);
+            return STYLE.wrap('|') + description.stringify(this) + STYLE.wrap('|');
+        }
+    };
 
     @NotNull String annotate(@NotNull Description description);
 }

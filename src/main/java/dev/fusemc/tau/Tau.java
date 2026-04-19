@@ -4,6 +4,7 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Origin;
 import dev.fusemc.tau.proxy.Dictionary;
+import dev.fusemc.tau.template.Functional;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -12,7 +13,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.*;
+import java.math.BigInteger;
 import java.util.*;
+import java.util.function.IntBinaryOperator;
 
 /// The Tau's entrypoint.
 ///
@@ -296,6 +300,8 @@ public final class Tau {
             }
             if (o instanceof Value value)
                 return Description.attach(Tau.describe(value, visited, constant), Origin.HOST);
+            if (o instanceof Type type)
+                return Tau.describe(type);
             return Description.attach(Description.reference(o.getClass()), Origin.HOST);
         }
         return Description.attach(Description.NULL, Origin.HOST);
@@ -436,6 +442,79 @@ public final class Tau {
         if (value.isHostObject())
             return Description.attach(Tau.describe((Object) value.asHostObject(), visited, constant), Origin.POLYGLOT);
         return Description.attach(Description.UNKNOWN, Origin.POLYGLOT);
+    }
+
+    @ApiStatus.Internal
+    public static @NotNull Description describe(@NotNull Type type) {
+        Objects.requireNonNull(type);
+        var raw = Tau.raw(type);
+        if (raw == Byte.class || raw == byte.class)
+            return Description.attach(Description.BYTE, Origin.REFLECTION);
+        if (raw == Short.class || raw == short.class)
+            return Description.attach(Description.SHORT, Origin.REFLECTION);
+        if (raw == Integer.class || raw == int.class)
+            return Description.attach(Description.INTEGER, Origin.REFLECTION);
+        if (raw == Long.class || raw == long.class)
+            return Description.attach(Description.LONG, Origin.REFLECTION);
+        if (raw == Float.class || raw == float.class)
+            return Description.attach(Description.FLOAT, Origin.REFLECTION);
+        if (raw == Double.class || raw == double.class)
+            return Description.attach(Description.DOUBLE, Origin.REFLECTION);
+        if (raw == Boolean.class || raw == boolean.class)
+            return Description.attach(Description.BOOLEAN, Origin.REFLECTION);
+        if (raw == Void.class || raw == void.class)
+            return Description.attach(Description.UNDEFINED, Origin.REFLECTION);
+        if (raw == BigInteger.class)
+            return Description.attach(Description.BIG_INTEGER, Origin.REFLECTION);
+        if (raw == String.class)
+            return Description.attach(Description.STRING, Origin.REFLECTION);
+        if (raw == Object.class || raw == Value.class)
+            return Description.attach(Description.ANY, Origin.REFLECTION);
+        if (raw.isArray())
+            return Description.attach(Description.concat(
+                    Tau.describe(type instanceof GenericArrayType gat
+                            ? gat.getGenericComponentType()
+                            : raw.getComponentType()),
+                    Description.delimiter("[]")
+            ), Origin.REFLECTION);
+        if (type instanceof ParameterizedType pt) {
+            var generics = pt.getActualTypeArguments();
+            return Description.attach(Description.concat(
+                    Description.reference(raw),
+                    Description.concat(
+                            Description.delimiter('<'),
+                            Description.join(Description.delimiter(", "), Arrays.stream(generics)
+                                    .map(Tau::describe)
+                                    .toArray(Description[]::new)),
+                            Description.delimiter('>')
+                    )
+            ), Origin.REFLECTION);
+        }
+        return Description.attach(Description.reference(raw), Origin.REFLECTION);
+    }
+
+    private static @NotNull Class<?> raw(@NotNull Type type) {
+        Objects.requireNonNull(type);
+        return switch (type) {
+            case Class<?> clazz -> clazz;
+            case ParameterizedType pt -> Tau.raw(pt.getRawType());
+            case TypeVariable<?> tv -> {
+                var bounds = tv.getBounds();
+                if (bounds.length == 1)
+                    yield Tau.raw(bounds[0]);
+                yield Object.class;
+            }
+            case WildcardType wt -> {
+                var upper = wt.getUpperBounds();
+                if (upper.length == 1)
+                    yield Tau.raw(upper[0]);
+                yield Object.class;
+            }
+            case GenericArrayType gat -> Array.newInstance(
+                    Tau.raw(gat.getGenericComponentType()), 0
+            ).getClass();
+            default -> Object.class;
+        };
     }
 
     @ApiStatus.Internal
