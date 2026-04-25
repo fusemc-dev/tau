@@ -4,7 +4,7 @@ import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
@@ -101,6 +101,6 @@ public record Array<T>(@NotNull Template<T> template,
                         Description.delimiter(')')
                 ),
                 Description.delimiter("[]")
-        ), Origin.SCHEMA);
+        ), Domain.TEMPLATE);
     }
 }

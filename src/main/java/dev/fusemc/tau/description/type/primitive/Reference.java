@@ -4,7 +4,7 @@ import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Documented;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +19,7 @@ public record Reference(@NotNull Class<?> type) implements Description {
     }
 
     @Override
-    public @NotNull String stringify(@Nullable Origin enclosing) {
+    public @NotNull String stringify(@Nullable Domain enclosing) {
         var documented = this.type.getAnnotation(Documented.class);
         if (documented != null) {
             var type = documented.value();

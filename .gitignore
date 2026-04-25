@@ -25,6 +25,9 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
+# TeX
+out/
+
 # IntelliJ IDEA
 .idea/
 *.iws

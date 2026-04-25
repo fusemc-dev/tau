@@ -3,7 +3,7 @@ package dev.fusemc.tau.description.type.primitive;
 import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
 import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +28,7 @@ public record Literal(@NotNull String literal) implements Description {
     }
 
     @Override
-    public @NotNull String stringify(@Nullable Origin enclosing) {
+    public @NotNull String stringify(@Nullable Domain enclosing) {
         var buffer = Literal.STYLE.begin(new StringBuilder())
                 .append('"');
         for (var i = 0; i < this.literal.length();) {

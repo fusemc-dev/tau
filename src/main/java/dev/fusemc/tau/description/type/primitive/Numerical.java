@@ -9,16 +9,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public record Delimiter(@NotNull String delimiter) implements Description {
+public record Numerical<N extends Number>(@NotNull N number) implements Description {
 
-    private static final Style STYLE = Charcoal.foreground(0xBCBEC4);
+    private static final @NotNull Style STYLE = Charcoal.foreground(0x2AACB8);
 
-    public Delimiter {
-        Objects.requireNonNull(delimiter);
+    public Numerical {
+        Objects.requireNonNull(number);
     }
 
     @Override
     public @NotNull String stringify(@Nullable Domain enclosing) {
-        return Delimiter.STYLE.wrap(this.delimiter);
+        return Numerical.STYLE.wrap(this.number.toString());
     }
 }

@@ -22,16 +22,18 @@ public interface Description {
     @NotNull Description BIG_INTEGER = Description.keyword("bigint");
     @NotNull Description STRING      = Description.keyword("string");
     @NotNull Description BOOLEAN     = Description.keyword("boolean");
+    @NotNull Description TRUE        = Description.keyword("true");
+    @NotNull Description FALSE       = Description.keyword("false");
     @NotNull Description NULL        = Description.keyword("null");
     @NotNull Description UNDEFINED   = Description.keyword("undefined");
     @NotNull Description ANY         = Description.keyword("any");
     @NotNull Description UNKNOWN     = Description.keyword("unknown");
     @NotNull Description ELLIPSIS    = Description.delimiter("...");
 
-    static @NotNull Description attach(@NotNull Description description, @NotNull Origin origin) {
+    static @NotNull Description attach(@NotNull Description description, @NotNull Domain domain) {
         Objects.requireNonNull(description);
-        Objects.requireNonNull(origin);
-        return new Attached(description, origin);
+        Objects.requireNonNull(domain);
+        return new Attached(description, domain);
     }
 
     static @NotNull Description delimiter(char delimiter) {
@@ -53,6 +55,11 @@ public interface Description {
         return new Literal(literal);
     }
 
+    static <N extends Number> @NotNull Description number(@NotNull N number) {
+        Objects.requireNonNull(number);
+        return new Numerical<>(number);
+    }
+
     static @NotNull Description reference(@NotNull Class<?> clazz) {
         Objects.requireNonNull(clazz);
         return new Reference(clazz);
@@ -69,5 +76,5 @@ public interface Description {
         return new Join(delimiter, Arrays.copyOf(descriptions, descriptions.length));
     }
 
-    @NotNull String stringify(@Nullable Origin enclosing);
+    @NotNull String stringify(@Nullable Domain enclosing);
 }

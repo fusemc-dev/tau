@@ -2,7 +2,7 @@ package dev.fusemc.tau.template.dictionary.record;
 
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.constructor.DiConstructor;
 import dev.fusemc.tau.element.Property;
 import com.manchickas.optionated.Option;
@@ -50,6 +50,6 @@ public record DiRecord<T, A, B>(
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Record.description(points, this.a, this.b), Origin.SCHEMA);
+        return Description.attach(Record.description(points, this.a, this.b), Domain.TEMPLATE);
     }
 }

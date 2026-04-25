@@ -4,7 +4,7 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,8 +43,8 @@ public final class Mu<T> implements Template<T> {
         if (this.delegate == null)
             throw new AssertionError("Attempted to describe() a Mu within the constructor function.");
         if (points.add(this))
-            return Description.attach(this.delegate.describe(points.branch()), Origin.SCHEMA);
-        return Description.attach(Description.ELLIPSIS, Origin.SCHEMA);
+            return Description.attach(this.delegate.describe(points.branch()), Domain.TEMPLATE);
+        return Description.attach(Description.ELLIPSIS, Domain.TEMPLATE);
     }
 
     @Override

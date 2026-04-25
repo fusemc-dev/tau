@@ -5,10 +5,9 @@ import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.proxy.Implementation;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,24 +65,9 @@ public final class Functional<T> implements Template<T> {
             var handler = new Implementation(this.target, this.template, value);
             return Option.some((T) Proxy.newProxyInstance(
                     Tau.class.getClassLoader(),
-                    new Class<?>[] {
-                            ProxyExecutable.class,
-                            this.type
-                    },
+                    new Class<?>[] { this.type },
                     handler
             ));
-        }
-        if (value.isProxyObject()) {
-            var proxy = value.asProxyObject();
-            if (proxy instanceof ProxyExecutable executable) {
-                var type = executable.getClass();
-                if (Proxy.isProxyClass(type)) {
-                    var handler = Proxy.getInvocationHandler(executable);
-                    if (handler instanceof Implementation impl) {
-
-                    }
-                }
-            }
         }
         if (value.isHostObject()) {
             var host = value.asHostObject();
@@ -121,7 +105,7 @@ public final class Functional<T> implements Template<T> {
                                         return Description.attach(Description.concat(
                                                 Description.ELLIPSIS,
                                                 description
-                                        ), Origin.REFLECTION);
+                                        ), Domain.REFLECTION);
                                     return description;
                                 })
                                 .toArray(Description[]::new)),
@@ -129,6 +113,6 @@ public final class Functional<T> implements Template<T> {
                 ),
                 Description.delimiter(" => "),
                 this.template.describe(points)
-        ), Origin.SCHEMA);
+        ), Domain.TEMPLATE);
     }
 }

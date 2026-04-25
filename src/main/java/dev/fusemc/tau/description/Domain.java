@@ -6,9 +6,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public interface Origin {
+public interface Domain {
 
-    @NotNull Origin HOST = new Origin() {
+    @NotNull Domain HOST = new Domain() {
 
         private static final Style STYLE = Charcoal.foreground(0x56A8F5);
 
@@ -18,7 +18,7 @@ public interface Origin {
             return STYLE.wrap('{') + description.stringify(this) + STYLE.wrap('}');
         }
     };
-    @NotNull Origin POLYGLOT = new Origin() {
+    @NotNull Domain POLYGLOT = new Domain() {
 
         private static final Style STYLE = Charcoal.foreground(0x6AAB73);
 
@@ -28,7 +28,7 @@ public interface Origin {
             return STYLE.wrap('/') + description.stringify(this) + STYLE.wrap('/');
         }
     };
-    @NotNull Origin SCHEMA = new Origin() {
+    @NotNull Domain TEMPLATE = new Domain() {
 
         private static final Style STYLE = Charcoal.foreground(0xC77DBB);
 
@@ -38,7 +38,7 @@ public interface Origin {
             return STYLE.wrap('<') + description.stringify(this) + STYLE.wrap('>');
         }
     };
-    @NotNull Origin REFLECTION = new Origin() {
+    @NotNull Domain REFLECTION = new Domain() {
 
         private static final Style STYLE = Charcoal.foreground(0xCF8E6D);
 
@@ -46,6 +46,16 @@ public interface Origin {
         public @NotNull String annotate(@NotNull Description description) {
             Objects.requireNonNull(description);
             return STYLE.wrap('|') + description.stringify(this) + STYLE.wrap('|');
+        }
+    };
+    @NotNull Domain PROXY = new Domain() {
+
+        private static final Style STYLE = Charcoal.foreground(0xB3AE60);
+
+        @Override
+        public @NotNull String annotate(@NotNull Description description) {
+            Objects.requireNonNull(description);
+            return STYLE.wrap('[') + description.stringify(this) + STYLE.wrap(']');
         }
     };
 

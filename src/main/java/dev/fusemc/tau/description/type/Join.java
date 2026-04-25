@@ -1,7 +1,7 @@
 package dev.fusemc.tau.description.type;
 
 import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +17,7 @@ public record Join(@NotNull Description delimiter,
     }
 
     @Override
-    public @NotNull String stringify(@Nullable Origin enclosing) {
+    public @NotNull String stringify(@Nullable Domain enclosing) {
         var buffer = new StringBuilder();
         for (var i = 0; i < this.descriptions.length; i++) {
             var description = this.descriptions[i];

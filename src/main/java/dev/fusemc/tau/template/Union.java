@@ -4,7 +4,7 @@ import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +45,6 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
                 Arrays.stream(this.alternatives)
                     .map(t -> t.describe(points))
                     .toArray(Description[]::new)
-        ), Origin.SCHEMA);
+        ), Domain.TEMPLATE);
     }
 }

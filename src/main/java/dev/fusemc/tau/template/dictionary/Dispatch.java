@@ -4,7 +4,7 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Property;
 import dev.fusemc.tau.template.Mu;
 import dev.fusemc.tau.template.dictionary.record.Record;
@@ -71,6 +71,6 @@ public record Dispatch<T, A>(
                         Description.ELLIPSIS
                 ),
                 Description.delimiter('}')
-        ), Origin.SCHEMA);
+        ), Domain.TEMPLATE);
     }
 }

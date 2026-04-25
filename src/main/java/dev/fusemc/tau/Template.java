@@ -1,7 +1,7 @@
 package dev.fusemc.tau;
 
 import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Accessor;
 import dev.fusemc.tau.element.Element;
 import dev.fusemc.tau.element.constructor.*;
@@ -51,7 +51,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.NUMBER, Origin.SCHEMA);
+            return Description.attach(Description.NUMBER, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull String> STRING = new Template<>() {
@@ -72,7 +72,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.STRING, Origin.SCHEMA);
+            return Description.attach(Description.STRING, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Boolean> BOOLEAN = new Template<>() {
@@ -93,7 +93,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BOOLEAN, Origin.SCHEMA);
+            return Description.attach(Description.BOOLEAN, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Byte> BYTE = new Numerical<>() {
@@ -107,7 +107,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BYTE, Origin.SCHEMA);
+            return Description.attach(Description.BYTE, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Short> SHORT = new Numerical<>() {
@@ -121,7 +121,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.SHORT, Origin.SCHEMA);
+            return Description.attach(Description.SHORT, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Integer> INTEGER = new Numerical<>() {
@@ -135,7 +135,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.INTEGER, Origin.SCHEMA);
+            return Description.attach(Description.INTEGER, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Long> LONG = new Numerical<>() {
@@ -149,7 +149,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.LONG, Origin.SCHEMA);
+            return Description.attach(Description.LONG, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Float> FLOAT = new Numerical<>() {
@@ -163,7 +163,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.FLOAT, Origin.SCHEMA);
+            return Description.attach(Description.FLOAT, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Double> DOUBLE = new Numerical<>() {
@@ -177,7 +177,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.DOUBLE, Origin.SCHEMA);
+            return Description.attach(Description.DOUBLE, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull BigInteger> BIG_INTEGER = new Numerical<>() {
@@ -191,7 +191,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BIG_INTEGER, Origin.SCHEMA);
+            return Description.attach(Description.BIG_INTEGER, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@Nullable Void> UNDEFINED = new Template<>() {
@@ -210,7 +210,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.UNDEFINED, Origin.SCHEMA);
+            return Description.attach(Description.UNDEFINED, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@Nullable Void> NULL = new Template<>() {
@@ -229,7 +229,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.NULL, Origin.SCHEMA);
+            return Description.attach(Description.NULL, Domain.TEMPLATE);
         }
     };
     @NotNull Template<@NotNull Value> ANY = new Template<>() {
@@ -249,7 +249,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.ANY, Origin.SCHEMA);
+            return Description.attach(Description.ANY, Domain.TEMPLATE);
         }
     };
 

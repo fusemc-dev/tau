@@ -3,7 +3,7 @@ package dev.fusemc.tau.template.collection.tuple;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Element;
 import dev.fusemc.tau.element.constructor.TriConstructor;
 import dev.fusemc.tau.template.Mu;
@@ -44,6 +44,6 @@ public record TriTuple<T, A, B, C>(@NotNull Element<T, A> a,
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Tuple.description(points, this.a, this.b, this.c), Origin.SCHEMA);
+        return Description.attach(Tuple.description(points, this.a, this.b, this.c), Domain.TEMPLATE);
     }
 }

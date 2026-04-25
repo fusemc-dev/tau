@@ -5,7 +5,6 @@ import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
 import dev.fusemc.tau.TypeException;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +19,6 @@ public final class Implementation implements InvocationHandler {
     private static final Method TO_STRING;
     private static final Method HASH_CODE;
     private static final Method EQUALS;
-    private static final Method EXECUTE;
 
     private final @NotNull Method target;
     private final @NotNull Template<?> template;
@@ -148,14 +146,7 @@ public final class Implementation implements InvocationHandler {
             var other = args[0];
             if (other instanceof Proxy p)
                 return this.equals(Proxy.getInvocationHandler(p));
-            return this.delegate.equals(other);
-        }
-        if (method.equals(Implementation.EXECUTE)) {
-            var value = Tau.lower(this.template, this.delegate.execute((Object[]) args[0]));
-            var option = Implementation.cast(this.target.getReturnType(), value);
-            if (option instanceof Option.Some<?>(var result))
-                return result;
-            throw new TypeException(Tau.describe(value), Tau.describe(this.target.getGenericReturnType()));
+            return false;
         }
         if (method.equals(this.target)) {
             var value = Tau.lower(this.template, this.delegate.execute(this.spreadVariadic(args)));
@@ -188,6 +179,11 @@ public final class Implementation implements InvocationHandler {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.target, this.template, this.delegate);
+    }
+
     public @NotNull Value delegate() {
         return this.delegate;
     }
@@ -197,7 +193,6 @@ public final class Implementation implements InvocationHandler {
             TO_STRING = Object.class.getDeclaredMethod("toString");
             HASH_CODE = Object.class.getDeclaredMethod("hashCode");
             EQUALS    = Object.class.getDeclaredMethod("equals", Object.class);
-            EXECUTE   = ProxyExecutable.class.getDeclaredMethod("execute", Value[].class);
         } catch (NoSuchMethodException e) {
             throw new AssertionError(e);
         }

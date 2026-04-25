@@ -4,7 +4,7 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Origin;
+import dev.fusemc.tau.description.Domain;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +37,6 @@ public record Literal(@NotNull String literal) implements Template<String> {
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Description.literal(this.literal), Origin.SCHEMA);
+        return Description.attach(Description.literal(this.literal), Domain.TEMPLATE);
     }
 }
