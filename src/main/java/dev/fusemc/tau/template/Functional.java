@@ -115,4 +115,9 @@ public final class Functional<T> implements Template<T> {
                 this.template.describe(points)
         ), Domain.TEMPLATE);
     }
+
+    @Override
+    public @NotNull String toString() {
+        return Template.toString(this);
+    }
 }

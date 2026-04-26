@@ -47,4 +47,9 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
                     .toArray(Description[]::new)
         ), Domain.TEMPLATE);
     }
+
+    @Override
+    public @NotNull String toString() {
+        return Template.toString(this);
+    }
 }

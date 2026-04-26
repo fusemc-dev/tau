@@ -8,6 +8,7 @@ import dev.fusemc.tau.element.constructor.*;
 import dev.fusemc.tau.element.Property;
 import dev.fusemc.tau.template.*;
 import dev.fusemc.tau.template.collection.Array;
+import dev.fusemc.tau.template.collection.Iterable;
 import dev.fusemc.tau.template.collection.tuple.DiTuple;
 import dev.fusemc.tau.template.collection.tuple.MonoTuple;
 import dev.fusemc.tau.template.dictionary.Dispatch;
@@ -20,11 +21,31 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
+/// A bidirectional type schema for Polyglot [Value]s.
+///
+/// A `Template` defines procedures to marshal back and forth between a `Value` and some [T], called
+/// [#lower(Value)] and [#raise(Object)] respectively.
+///
+///
+/// It is generally desired for the following property to hold:
+///
+/// ```
+/// ∀x, lower x = Some y ⇒ ∃z, raise y = Some z
+/// ```
+///
+/// > For any given `x`, if lowering `x` succeeds with some `y`, there must exist some `z` such that raising `y` succeeds with `z`.
+///
+/// @see #lower(Value)
+/// @see #raise(Object)
+/// @see #describe(Scope)
+/// @since `0.1.0`
 public interface Template<T> {
 
     @NotNull Template<@NotNull Number> NUMBER = new Numerical<>() {
@@ -281,6 +302,11 @@ public interface Template<T> {
         return new Array<>(element, constructor);
     }
 
+    static <T> @NotNull Template<@NotNull Iterator<T>> iterator(@NotNull Template<T> element) {
+        Objects.requireNonNull(element);
+        return new Iterable<>(element);
+    }
+
     static <T, A> @NotNull Template<@NotNull T> dispatch(@NotNull Property<T, A> discriminant,
                                                 @NotNull Function<A, Option<Record<? extends T>>> dispatch) {
         Objects.requireNonNull(discriminant);
@@ -452,6 +478,33 @@ public interface Template<T> {
                 return Template.this.describe(points);
             }
         };
+    }
+
+    default Template<T> alias(@NotNull UnaryOperator<@NotNull Description> forward) {
+        Objects.requireNonNull(forward);
+        return new Template<>() {
+
+            @Override
+            public @NotNull Option<T> lower(@NotNull Value value) {
+                return Template.this.lower(value);
+            }
+
+            @Override
+            public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
+                return Template.this.raise(value);
+            }
+
+            @Override
+            public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+                return Description.attach(forward.apply(Template.this.describe(points)), Domain.TEMPLATE);
+            }
+        };
+    }
+
+    static @NotNull String toString(@NotNull Template<?> template) {
+        Objects.requireNonNull(template);
+        var description = template.describe(Scope.hashScope());
+        return description.stringify(null);
     }
 
     @NotNull Option<T> lower(@NotNull Value value);

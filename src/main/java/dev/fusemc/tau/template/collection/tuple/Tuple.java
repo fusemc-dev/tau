@@ -3,6 +3,7 @@ package dev.fusemc.tau.template.collection.tuple;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
+import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Element;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.Mu;
@@ -60,4 +61,21 @@ public interface Tuple<T> extends Template<T> {
                 Description.delimiter(']')
         );
     }
+
+    /// Describes the `Tuple`.
+    ///
+    /// The returned [Description] will be annotated as having come from [Domain#TEMPLATE].
+    ///
+    /// A `Tuple` is described as follows, where `δₙ` denotes the `Description`
+    /// of the n-th [Template] of the tuple:
+    ///
+    /// ```
+    /// [δ₀, δ₁, ..., δₙ]
+    /// ```
+    ///
+    /// @since `0.1.0`
+    /// @see #lower(Value)
+    /// @see #raise(Object) 
+    @Override
+    @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points);
 }

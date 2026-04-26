@@ -1,6 +1,7 @@
 package dev.fusemc.tau.template.dictionary.record;
 
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.Template;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.description.Domain;
@@ -57,5 +58,10 @@ public record TetraRecord<T, A, B, C, D>(
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
         return Description.attach(Record.description(points, this.a, this.b, this.c, this.d), Domain.TEMPLATE);
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return Template.toString(this);
     }
 }

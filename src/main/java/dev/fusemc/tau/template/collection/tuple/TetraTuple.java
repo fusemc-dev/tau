@@ -1,6 +1,7 @@
 package dev.fusemc.tau.template.collection.tuple;
 
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.Template;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.description.Domain;
@@ -48,5 +49,10 @@ public record TetraTuple<T, A, B, C, D>(@NotNull Element<T, A> a,
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
         return Description.attach(Tuple.description(points, this.a, this.b, this.c, this.d), Domain.TEMPLATE);
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return Template.toString(this);
     }
 }

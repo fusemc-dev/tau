@@ -62,6 +62,6 @@ public final class Mu<T> implements Template<T> {
 
     @Override
     public @NotNull String toString() {
-        return String.format("Mu[%s]", this.delegate);
+        return Template.toString(this);
     }
 }

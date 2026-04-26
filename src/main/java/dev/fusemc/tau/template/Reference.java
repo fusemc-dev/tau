@@ -39,4 +39,9 @@ public record Reference<T>(@NotNull Class<T> type) implements Template<@NotNull 
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
         return Description.attach(Description.reference(this.type), Domain.TEMPLATE);
     }
+
+    @Override
+    public @NotNull String toString() {
+        return Template.toString(this);
+    }
 }

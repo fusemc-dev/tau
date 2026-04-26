@@ -4,10 +4,8 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.*;
 import org.graalvm.polyglot.proxy.Proxy;
-import org.graalvm.polyglot.proxy.ProxyArray;
-import org.graalvm.polyglot.proxy.ProxyHashMap;
-import org.graalvm.polyglot.proxy.ProxyObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +24,7 @@ public final class Tau {
 
     @ApiStatus.Internal
     private static final @Nullable Object UNDEFINED_SENTINEL = Tau.loadUndefined();
-    private static final int CONSTANT_LENGTH_THRESHOLD = 5;
+    private static final int CONSTANT_LENGTH_THRESHOLD = 6;
 
     private Tau() {
         throw new UnsupportedOperationException();
@@ -510,10 +508,72 @@ public final class Tau {
             }
             return Description.attach(Description.ELLIPSIS, Domain.POLYGLOT);
         }
+        if (value.hasHashEntries()) {
+            if (visited.add(value)) {
+                var length = (int) value.getHashSize();
+                if (length ==  0)
+                    return Description.attach(Description.delimiter("{}"), Domain.POLYGLOT);
+                var iterator = Tau.lower(
+                        Template.iterator(Template.<Value[], Value, Value>tuple(
+                                Template.element(Template.ANY, values -> values[0]),
+                                Template.element(Template.ANY, values -> values[1]),
+                                (a, b) -> new Value[] {a, b}
+                        )),
+                        value.getHashEntriesIterator()
+                );
+                if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                    var buffer = new Description[length];
+                    for (var i = 0; iterator.hasNext(); i++) {
+                        var entry = iterator.next();
+                        buffer[i] = Description.concat(
+                                Description.concat(
+                                        Description.delimiter('['),
+                                        Tau.describe(entry[0], visited.branch(), true),
+                                        Description.delimiter(']')
+                                ),
+                                Description.delimiter(": "),
+                                Tau.describe(entry[1], visited.branch(), true)
+                        );
+                    }
+                    return Description.attach(Description.concat(
+                            Description.delimiter("{"),
+                            Description.join(
+                                    Description.delimiter(", "),
+                                    buffer
+                            ),
+                            Description.delimiter(" }")
+                    ), Domain.POLYGLOT);
+                }
+                var keys = new LinkedHashSet<Description>();
+                var values = new LinkedHashSet<Description>();
+                while (iterator.hasNext()) {
+                    var entry = iterator.next();
+                    keys.add(Tau.describe(entry[0], visited.branch(), false));
+                    values.add(Tau.describe(entry[1], visited.branch(), false));
+                }
+                return Description.attach(Description.concat(
+                        Description.delimiter('{'),
+                        Description.concat(
+                                Description.delimiter('['),
+                                Description.join(
+                                        Description.delimiter(" | "),
+                                        keys.toArray(Description[]::new)
+                                ),
+                                Description.delimiter(']')
+                        ),
+                        Description.delimiter(": "),
+                        Description.join(
+                                Description.delimiter(" | "),
+                                values.toArray(Description[]::new)
+                        ),
+                        Description.delimiter('}')
+                ), Domain.POLYGLOT);
+            }
+        }
         if (value.isHostObject())
-            return Description.attach(Tau.describe((Object) value.asHostObject(), visited, constant), Domain.POLYGLOT);
+            return Tau.describe((Object) value.asHostObject(), visited, constant);
         if (value.isProxyObject())
-            return Description.attach(Tau.describe((Proxy) value.asProxyObject(), visited, constant), Domain.POLYGLOT);
+            return Tau.describe((Proxy) value.asProxyObject(), visited, constant);
         return Description.attach(Description.UNKNOWN, Domain.POLYGLOT);
     }
 
@@ -576,106 +636,88 @@ public final class Tau {
         }
         if (proxy instanceof ProxyObject object) {
             if (visited.add(object)) {
-                var keys = Value.asValue(object.getMemberKeys());
-                if (keys.hasArrayElements()) {
-                    var length = (int) keys.getArraySize();
-                    var buffer = new Description[length];
-                    for (var i = 0; i < length; i++) {
-                        var key = keys.getArrayElement(i);
-                        if (key.isString()) {
-                            var member = object.getMember(key.asString());
-                            var description = Tau.describe(member, visited.branch(), constant);
-                            buffer[i] = Description.concat(
-                                    Description.literal(key.asString()),
-                                    Description.delimiter(": "),
-                                    description
-                            );
-                            continue;
-                        }
-                        throw new ClassCastException();
-                    }
-                    return Description.attach(Description.concat(
-                            Description.delimiter('{'),
-                            Description.join(
-                                    Description.delimiter(", "),
-                                    buffer
-                            ),
-                            Description.delimiter('}')
-                    ), Domain.PROXY);
+                var keys = Tau.lower(
+                        Template.array(Template.STRING, String[]::new),
+                        Value.asValue(object.getMemberKeys())
+                );
+                var buffer = new Description[keys.length];
+                for (var i = 0; i < keys.length; i++) {
+                    var member = object.getMember(keys[i]);
+                    var description = Tau.describe(member, visited.branch(), constant);
+                    buffer[i] = Description.concat(
+                            Description.literal(keys[i]),
+                            Description.delimiter(": "),
+                            description
+                    );
                 }
-                throw new IllegalStateException();
+                return Description.attach(Description.concat(
+                        Description.delimiter('{'),
+                        Description.join(
+                                Description.delimiter(", "),
+                                buffer
+                        ),
+                        Description.delimiter('}')
+                ), Domain.PROXY);
             }
             return Description.attach(Description.ELLIPSIS, Domain.PROXY);
         }
         if (proxy instanceof ProxyHashMap map) {
             if (visited.add(map)) {
                 var length = (int) map.getHashSize();
-                var iterator = Value.asValue(map.getHashEntriesIterator());
-                if (iterator.isIterator()) {
-                    if (length == 0)
-                        return Description.attach(Description.delimiter("{}"), Domain.PROXY);
-                    if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
-                        var buffer = new Description[length];
-                        for (var i = 0; iterator.hasIteratorNextElement(); ) {
-                            var entry = iterator.getIteratorNextElement();
-                            if (entry.hasArrayElements()) {
-                                if (entry.getArraySize() == 2) {
-                                    var key = entry.getArrayElement(0);
-                                    var value = entry.getArrayElement(1);
-                                    buffer[i++] = Description.concat(
-                                            Description.concat(
-                                                    Description.delimiter('['),
-                                                    Tau.describe(key, visited.branch(), true),
-                                                    Description.delimiter(']')
-                                            ),
-                                            Description.delimiter(": "),
-                                            Tau.describe(value, visited.branch(), true)
-                                    );
-                                    continue;
-                                }
-                                throw new IllegalStateException();
-                            }
-                            throw new IllegalStateException();
-                        }
-                        return Description.attach(Description.concat(
-                                Description.delimiter('{'),
-                                Description.join(Description.delimiter(", "), buffer),
-                                Description.delimiter('}')
-                        ), Domain.PROXY);
-                    }
-                    var key = new LinkedHashSet<Description>();
-                    var value = new LinkedHashSet<Description>();
-                    while (iterator.hasIteratorNextElement()) {
-                        var entry = iterator.getIteratorNextElement();
-                        if (entry.hasArrayElements()) {
-                            if (entry.getArraySize() == 2) {
-                                key.add(Tau.describe(entry.getArrayElement(0), visited.branch(), false));
-                                value.add(Tau.describe(entry.getArrayElement(1), visited.branch(), false));
-                                continue;
-                            }
-                            throw new IllegalStateException();
-                        }
-                        throw new IllegalStateException();
+                var iterator = Tau.lower(
+                        Template.iterator(Template.<Value[], Value, Value>tuple(
+                                Template.element(Template.ANY, tuple -> tuple[0]),
+                                Template.element(Template.ANY, tuple -> tuple[1]),
+                                (a, b) -> new Value[] {a, b}
+                        )),
+                        Value.asValue(map.getHashEntriesIterator())
+                );
+                if (length == 0)
+                    return Description.attach(Description.delimiter("{}"), Domain.PROXY);
+                if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                    var buffer = new Description[length];
+                    for (var i = 0; iterator.hasNext(); ) {
+                        var entry = iterator.next();
+                        buffer[i++] = Description.concat(
+                                Description.concat(
+                                        Description.delimiter('['),
+                                        Tau.describe(entry[0], visited.branch(), true),
+                                        Description.delimiter(']')
+                                ),
+                                Description.delimiter(": "),
+                                Tau.describe(entry[1], visited.branch(), true)
+                        );
                     }
                     return Description.attach(Description.concat(
                             Description.delimiter('{'),
-                            Description.concat(
-                                    Description.delimiter('['),
-                                    Description.join(
-                                            Description.delimiter(" | "),
-                                            key.toArray(Description[]::new)
-                                    ),
-                                    Description.delimiter(']')
-                            ),
-                            Description.delimiter(": "),
-                            Description.join(
-                                    Description.delimiter(" | "),
-                                    value.toArray(Description[]::new)
-                            ),
+                            Description.join(Description.delimiter(", "), buffer),
                             Description.delimiter('}')
                     ), Domain.PROXY);
                 }
-                throw new IllegalStateException();
+                var key = new LinkedHashSet<Description>();
+                var value = new LinkedHashSet<Description>();
+                while (iterator.hasNext()) {
+                    var entry = iterator.next();
+                    key.add(Tau.describe(entry[0], visited.branch(), false));
+                    value.add(Tau.describe(entry[1], visited.branch(), false));
+                }
+                return Description.attach(Description.concat(
+                        Description.delimiter('{'),
+                        Description.concat(
+                                Description.delimiter('['),
+                                Description.join(
+                                        Description.delimiter(" | "),
+                                        key.toArray(Description[]::new)
+                                ),
+                                Description.delimiter(']')
+                        ),
+                        Description.delimiter(": "),
+                        Description.join(
+                                Description.delimiter(" | "),
+                                value.toArray(Description[]::new)
+                        ),
+                        Description.delimiter('}')
+                ), Domain.PROXY);
             }
             return Description.attach(Description.ELLIPSIS, Domain.PROXY);
         }

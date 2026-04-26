@@ -39,4 +39,9 @@ public record Literal(@NotNull String literal) implements Template<String> {
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
         return Description.attach(Description.literal(this.literal), Domain.TEMPLATE);
     }
+
+    @Override
+    public @NotNull String toString() {
+        return Template.toString(this);
+    }
 }

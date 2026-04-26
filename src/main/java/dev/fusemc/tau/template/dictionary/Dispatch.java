@@ -1,6 +1,8 @@
 package dev.fusemc.tau.template.dictionary;
 
 import com.manchickas.optionated.Option;
+import dev.fusemc.tau.Tau;
+import dev.fusemc.tau.TypeException;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
@@ -43,10 +45,9 @@ public record Dispatch<T, A>(
 
     @Override
     public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
-        if (value != null) {
-            var delegate = this.dispatch.apply(this.discriminant.access(value));
-            return delegate.flatMap(d -> this.raiseUnsafe(value, d));
-        }
+        if (value != null)
+            return this.dispatch.apply(this.discriminant.access(value))
+                    .flatMap(d -> this.raiseUnsafe(value, d));
         return Option.none();
     }
 
@@ -57,7 +58,7 @@ public record Dispatch<T, A>(
         try {
             return delegate.raiseWith((V) value, this.discriminant);
         } catch (ClassCastException e) {
-            return Option.none();
+            throw new TypeException(Tau.describe(value), delegate.describe(Scope.hashScope()));
         }
     }
 
@@ -72,5 +73,10 @@ public record Dispatch<T, A>(
                 ),
                 Description.delimiter('}')
         ), Domain.TEMPLATE);
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return Template.toString(this);
     }
 }
