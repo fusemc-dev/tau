@@ -51,7 +51,7 @@ public record DiRecord<T, A, B>(
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Record.description(points, this.a, this.b), Domain.TEMPLATE);
+        return Description.attach(Record.describe(points, this.a, this.b), Domain.TEMPLATE);
     }
 
     @Override

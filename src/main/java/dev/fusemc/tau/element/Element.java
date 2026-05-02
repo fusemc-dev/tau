@@ -9,10 +9,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /// An `Element` represents a single element of a tuple.
 ///
@@ -80,22 +77,9 @@ public record Element<T, A>(@NotNull Template<A> template,
                         return this.template.lower(Value.asValue(chars[position]));
                     return Option.none();
                 }
-                if (host instanceof Object[] values) {
-                    if (position < values.length)
-                        return this.template.lower(Value.asValue(values[position]));
-                    return Option.none();
-                }
-                if (host instanceof Iterable<?> collection) {
-                    var iterator = collection.iterator();
-                    for (int i = 0; i < position; i++) {
-                        if (iterator.hasNext()) {
-                            iterator.next();
-                            continue;
-                        }
-                        return Option.none();
-                    }
-                    if (iterator.hasNext())
-                        return this.template.lower(Value.asValue(iterator.next()));
+                if (host instanceof Object[] objects) {
+                    if (position < objects.length)
+                        return this.template.lower(Value.asValue(objects[position]));
                     return Option.none();
                 }
                 if (host instanceof Map.Entry<?, ?> entry)
@@ -104,6 +88,12 @@ public record Element<T, A>(@NotNull Template<A> template,
                         case 1 -> this.template.lower(Value.asValue(entry.getValue()));
                         default -> Option.none();
                     };
+                if (host instanceof List<?> list) {
+                    var length = list.size();
+                    if (position < length)
+                        return this.template.lower(Value.asValue(list.get(position)));
+                    return Option.none();
+                }
                 return Option.none();
             }
             if (value.isProxyObject()) {

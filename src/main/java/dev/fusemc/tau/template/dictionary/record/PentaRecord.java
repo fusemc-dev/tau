@@ -60,7 +60,7 @@ public record PentaRecord<T, A, B, C, D, E>(
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Record.description(points, this.a, this.b, this.c, this.d, this.e), Domain.TEMPLATE);
+        return Description.attach(Record.describe(points, this.a, this.b, this.c, this.d, this.e), Domain.TEMPLATE);
     }
 
     @Override

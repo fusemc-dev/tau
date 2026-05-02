@@ -19,6 +19,16 @@ public record Numerical<N extends Number>(@NotNull N number) implements Descript
 
     @Override
     public @NotNull String stringify(@Nullable Domain enclosing) {
+        if (this.number instanceof Float f) {
+            if (f.isInfinite() || f.isNaN())
+                return Keyword.STYLE.wrap(f.toString());
+            return Numerical.STYLE.wrap(f.toString());
+        }
+        if (this.number instanceof Double d) {
+            if (d.isInfinite() || d.isNaN())
+                return Keyword.STYLE.wrap(d.toString());
+            return Numerical.STYLE.wrap(d.toString());
+        }
         return Numerical.STYLE.wrap(this.number.toString());
     }
 }

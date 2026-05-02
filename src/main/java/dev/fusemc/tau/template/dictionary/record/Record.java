@@ -8,6 +8,9 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.proxy.Dictionary;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyHashMap;
+import org.graalvm.polyglot.proxy.ProxyObject;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +25,7 @@ public interface Record<T> extends Template<T> {
             @NotNull Property<? super T, ?> property
     );
 
+    @ApiStatus.Internal
     static boolean isRecord(@NotNull Value value) {
         Objects.requireNonNull(value);
         if (value.hasMembers() && !value.hasArrayElements())
@@ -29,6 +33,10 @@ public interface Record<T> extends Template<T> {
         if (value.isHostObject()) {
             var host = value.asHostObject();
             return host instanceof Map<?,?>;
+        }
+        if (value.isProxyObject()) {
+            var proxy = value.asProxyObject();
+            return proxy instanceof ProxyObject || proxy instanceof ProxyHashMap;
         }
         return false;
     }
@@ -52,8 +60,8 @@ public interface Record<T> extends Template<T> {
         return Option.some(Value.asValue(dict));
     }
 
-    static @NotNull Description description(@NotNull Scope<@NotNull Mu<?>> points,
-                                            @NotNull Property<?, ?> @NotNull... properties) {
+    static @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points,
+                                         @NotNull Property<?, ?> @NotNull... properties) {
         return Description.concat(
                 Description.delimiter('{'),
                 Description.join(Description.delimiter(", "), Arrays.stream(properties)

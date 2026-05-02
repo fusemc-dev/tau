@@ -1,5 +1,6 @@
 package dev.fusemc.tau.template.collection;
 
+import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
@@ -8,9 +9,11 @@ import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
+import org.graalvm.polyglot.proxy.ProxyIterable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.Iterable;
 import java.util.*;
 import java.util.function.IntFunction;
 

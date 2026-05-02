@@ -48,7 +48,7 @@ public record TetraTuple<T, A, B, C, D>(@NotNull Element<T, A> a,
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Tuple.description(points, this.a, this.b, this.c, this.d), Domain.TEMPLATE);
+        return Description.attach(Tuple.describe(points, this.a, this.b, this.c, this.d), Domain.TEMPLATE);
     }
 
     @Override

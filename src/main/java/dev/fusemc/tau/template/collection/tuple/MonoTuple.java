@@ -39,7 +39,7 @@ public record MonoTuple<T, A>(@NotNull Element<T, A> a,
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Tuple.description(points, this.a), Domain.TEMPLATE);
+        return Description.attach(Tuple.describe(points, this.a), Domain.TEMPLATE);
     }
 
     @Override

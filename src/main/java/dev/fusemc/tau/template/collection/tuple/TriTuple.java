@@ -45,7 +45,7 @@ public record TriTuple<T, A, B, C>(@NotNull Element<T, A> a,
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Tuple.description(points, this.a, this.b, this.c), Domain.TEMPLATE);
+        return Description.attach(Tuple.describe(points, this.a, this.b, this.c), Domain.TEMPLATE);
     }
 
     @Override

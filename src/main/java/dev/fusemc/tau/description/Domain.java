@@ -10,7 +10,7 @@ public interface Domain {
 
     @NotNull Domain HOST = new Domain() {
 
-        private static final Style STYLE = Charcoal.foreground(0x56A8F5);
+        private static final Style STYLE = Charcoal.foreground(0xC77DBB);
 
         @Override
         public @NotNull String annotate(@NotNull Description description) {
@@ -20,7 +20,7 @@ public interface Domain {
     };
     @NotNull Domain POLYGLOT = new Domain() {
 
-        private static final Style STYLE = Charcoal.foreground(0x6AAB73);
+        private static final Style STYLE = Charcoal.foreground(0xC77DBB);
 
         @Override
         public @NotNull String annotate(@NotNull Description description) {
@@ -40,7 +40,7 @@ public interface Domain {
     };
     @NotNull Domain REFLECTION = new Domain() {
 
-        private static final Style STYLE = Charcoal.foreground(0xCF8E6D);
+        private static final Style STYLE = Charcoal.foreground(0xC77DBB);
 
         @Override
         public @NotNull String annotate(@NotNull Description description) {
@@ -50,12 +50,12 @@ public interface Domain {
     };
     @NotNull Domain PROXY = new Domain() {
 
-        private static final Style STYLE = Charcoal.foreground(0xB3AE60);
+        private static final Style STYLE = Charcoal.foreground(0xC77DBB);
 
         @Override
         public @NotNull String annotate(@NotNull Description description) {
             Objects.requireNonNull(description);
-            return STYLE.wrap('[') + description.stringify(this) + STYLE.wrap(']');
+            return STYLE.wrap('*') + description.stringify(this) + STYLE.wrap('*');
         }
     };
 

@@ -507,9 +507,45 @@ public interface Template<T> {
         return description.stringify(null);
     }
 
+    /// Attempt marshaling a provided [Value] into a [T].
+    ///
+    /// If the conversion succeded, an `Option.some()` containing the result should be returned.
+    /// Otherwise, `Option.none()` should be returned to indicate a failure.
+    ///
+    /// ```
+    /// ∀x, lower x = Some y ⇒ ∃z, raise y = Some z
+    /// ```
+    ///
+    /// @since `0.1.0`
+    /// @see #raise(Object)
+    /// @see #describe(Scope)
     @NotNull Option<T> lower(@NotNull Value value);
 
+    /// Attempt marshaling a provided, **nullable** [T] into a [Value].
+    ///
+    /// If the conversion succeded, an `Option.some()` containing the result should be returned.
+    /// Otherwise, `Option.none()` should be returned to indicate a failure.
+    ///
+    /// ```
+    /// ∀x, raise x = Some y ⇒ ∃z, lower y = Some z
+    /// ```
+    /// @since `0.1.0`
+    /// @see #lower(Value)
+    /// @see #describe(Scope)
     @NotNull Option<@NotNull Value> raise(@Nullable T value);
 
+    /// Describe the `Template`.
+    ///
+    /// Produce a [Description] describing the type the `Template` accepts. The returned `Description`
+    /// should be annotated as having come from [Domain#TEMPLATE].
+    ///
+    /// If the `Template` is composed of others, it is the responsibility of the `Template` to
+    /// pass the received `points` [Scope] down when describing its dependencies, in order
+    /// to resolve potential circular references.
+    ///
+    /// @since `0.1.0`
+    /// @see Description
+    /// @see Domain
+    /// @see Mu
     @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points);
 }

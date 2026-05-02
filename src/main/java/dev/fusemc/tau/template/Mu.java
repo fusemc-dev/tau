@@ -51,12 +51,15 @@ public final class Mu<T> implements Template<T> {
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj instanceof Mu<?> other)
-            return this.delegate.equals(other.delegate);
+            return Objects.equals(this.delegate, other.delegate);
         return false;
     }
 
     @Override
+    @SuppressWarnings("ConstantValue")
     public int hashCode() {
+        if (this.delegate == null)
+            throw new AssertionError("Attempted to compute the hashCode() of a Mu within the constructor function.");
         return this.delegate.hashCode();
     }
 

@@ -57,7 +57,7 @@ public record TetraRecord<T, A, B, C, D>(
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Record.description(points, this.a, this.b, this.c, this.d), Domain.TEMPLATE);
+        return Description.attach(Record.describe(points, this.a, this.b, this.c, this.d), Domain.TEMPLATE);
     }
 
     @Override

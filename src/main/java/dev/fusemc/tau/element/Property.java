@@ -7,6 +7,7 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.proxy.Dictionary;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyHashMap;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -45,25 +46,32 @@ public sealed abstract class Property<T, A> {
                 return this.template.lower(member);
             return this.missing();
         }
-        if (value.isProxyObject()) {
-            var proxy = value.asProxyObject();
-            if (proxy instanceof ProxyObject po) {
-                if (po.hasMember(this.name)) {
-                    var member = po.getMember(this.name);
-                    if (member instanceof Value v)
-                        return this.template.lower(v);
-                    return Option.none();
+        if (value.isHostObject()) {
+            var host = value.asHostObject();
+            if (host instanceof Map<?, ?> map) {
+                if (map.containsKey(this.name)) {
+                    var member = map.get(this.name);
+                    return this.template.lower(Value.asValue(member));
                 }
                 return this.missing();
             }
             return Option.none();
         }
-        if (value.isHostObject()) {
-            var host = value.asHostObject();
-            if (host instanceof Map<?, ?> map) {
-                var member = map.get(this.name);
-                if (member instanceof Value v)
-                    return this.template.lower(v);
+        if (value.isProxyObject()) {
+            var proxy = value.asProxyObject();
+            if (proxy instanceof ProxyObject object) {
+                if (object.hasMember(this.name)) {
+                    var member = object.getMember(this.name);
+                    return this.template.lower(Value.asValue(member));
+                }
+                return this.missing();
+            }
+            if (proxy instanceof ProxyHashMap map) {
+                var key = Value.asValue(this.name);
+                if (map.hasHashEntry(key)) {
+                    var member = map.getHashValue(key);
+                    return this.template.lower(Value.asValue(member));
+                }
                 return this.missing();
             }
             return Option.none();

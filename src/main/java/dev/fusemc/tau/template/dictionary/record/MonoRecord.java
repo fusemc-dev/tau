@@ -48,7 +48,7 @@ public record MonoRecord<T, A>(
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Record.description(points, this.a), Domain.TEMPLATE);
+        return Description.attach(Record.describe(points, this.a), Domain.TEMPLATE);
     }
 
     @Override
