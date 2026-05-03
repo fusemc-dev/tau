@@ -14,7 +14,7 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Objects;
 
-public final class Implementation implements InvocationHandler {
+public final class FunctionLike implements InvocationHandler {
 
     private static final Method TO_STRING;
     private static final Method HASH_CODE;
@@ -24,9 +24,9 @@ public final class Implementation implements InvocationHandler {
     private final @NotNull Template<?> template;
     private final @NotNull Value delegate;
 
-    public Implementation(@NotNull Method target,
-                          @NotNull Template<?> template,
-                          @NotNull Value delegate) {
+    public FunctionLike(@NotNull Method target,
+                        @NotNull Template<?> template,
+                        @NotNull Value delegate) {
         this.target   = Objects.requireNonNull(target);
         this.template = Objects.requireNonNull(template);
         this.delegate = Objects.requireNonNull(delegate);
@@ -138,11 +138,11 @@ public final class Implementation implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
-        if (method.equals(Implementation.TO_STRING))
+        if (method.equals(FunctionLike.TO_STRING))
             return this.delegate.toString();
-        if (method.equals(Implementation.HASH_CODE))
+        if (method.equals(FunctionLike.HASH_CODE))
             return this.delegate.hashCode();
-        if (method.equals(Implementation.EQUALS)) {
+        if (method.equals(FunctionLike.EQUALS)) {
             var other = args[0];
             if (other instanceof Proxy p)
                 return this.equals(Proxy.getInvocationHandler(p));
@@ -150,7 +150,7 @@ public final class Implementation implements InvocationHandler {
         }
         if (method.equals(this.target)) {
             var value = Tau.lower(this.template, this.delegate.execute(this.spreadVariadic(args)));
-            var option = Implementation.cast(this.target.getReturnType(), value);
+            var option = FunctionLike.cast(this.target.getReturnType(), value);
             if (option instanceof Option.Some<?>(var result))
                 return result;
             throw new TypeException(Tau.describe(value), Tau.describe(this.target.getGenericReturnType()));
@@ -161,7 +161,7 @@ public final class Implementation implements InvocationHandler {
     @ApiStatus.Internal
     private Object @NotNull [] spreadVariadic(Object @NotNull [] args) {
         if (this.target.isVarArgs()) {
-            var variadic = Implementation.box(args[args.length - 1]);
+            var variadic = FunctionLike.box(args[args.length - 1]);
             var buffer = Arrays.copyOf(args, args.length + variadic.length - 1);
             System.arraycopy(variadic, 0, buffer, args.length - 1, variadic.length);
             return buffer;
@@ -172,7 +172,7 @@ public final class Implementation implements InvocationHandler {
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
-        if (obj instanceof Implementation other)
+        if (obj instanceof FunctionLike other)
             return this.target.equals(other.target)
                     && this.template.equals(other.template)
                     && this.delegate.equals(other.delegate);

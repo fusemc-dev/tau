@@ -4,7 +4,7 @@ import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.proxy.Dictionary;
+import dev.fusemc.tau.proxy.ObjectLike;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyHashMap;
@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 /// be [Required] or [Optional].
 ///
 /// @see Element
-/// @see Dictionary
+/// @see ObjectLike
 public sealed abstract class Property<T, A> {
 
     protected final @NotNull String name;

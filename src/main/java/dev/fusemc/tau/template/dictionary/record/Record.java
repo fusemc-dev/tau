@@ -5,7 +5,7 @@ import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import dev.fusemc.tau.element.Property;
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.proxy.Dictionary;
+import dev.fusemc.tau.proxy.ObjectLike;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyHashMap;
@@ -46,7 +46,7 @@ public interface Record<T> extends Template<T> {
                                             @NotNull Property<? super T, ?> @NotNull... properties) {
         Objects.requireNonNull(instance);
         Objects.requireNonNull(properties);
-        var buffer = Dictionary.builder(properties.length);
+        var buffer = ObjectLike.builder(properties.length);
         for (var property : properties) {
             var name = property.name();
             var option = property.raise(instance);

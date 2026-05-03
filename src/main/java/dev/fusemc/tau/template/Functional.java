@@ -6,7 +6,7 @@ import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
 import dev.fusemc.tau.description.Domain;
-import dev.fusemc.tau.proxy.Implementation;
+import dev.fusemc.tau.proxy.FunctionLike;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +62,7 @@ public final class Functional<T> implements Template<T> {
     @SuppressWarnings("unchecked")
     public @NotNull Option<T> lower(@NotNull Value value) {
         if (value.canExecute()) {
-            var handler = new Implementation(this.target, this.template, value);
+            var handler = new FunctionLike(this.target, this.template, value);
             return Option.some((T) Proxy.newProxyInstance(
                     Tau.class.getClassLoader(),
                     new Class<?>[] { this.type },
@@ -84,7 +84,7 @@ public final class Functional<T> implements Template<T> {
             var type = value.getClass();
             if (Proxy.isProxyClass(type)) {
                 var handler = Proxy.getInvocationHandler(value);
-                if (handler instanceof Implementation impl)
+                if (handler instanceof FunctionLike impl)
                     return Option.some(impl.delegate());
                 return Option.none();
             }

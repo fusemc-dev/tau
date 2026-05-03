@@ -10,29 +10,31 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collector;
 
-/// Represents a dictionary-like.
+/// Represents an object-like.
 ///
-/// A `Dictionary` is a specific implementation of a [ProxyObject]
+/// An `ObjectLike` is a specific implementation of a [ProxyObject]
 /// that acts as an immutable, read-only hash table after its creation.
-/// It is intended as a way to expose dictionary-like objects to scripts.
+/// It is intended as a way to expose object-like objects to scripts.
 ///
-/// A `Dictionary` is initiated with a [Builder].
+/// An `ObjectLike` is initiated with a [Builder].
 ///
 /// @since `0.1.0`
 /// @see Builder
-public final class Dictionary implements ProxyObject {
+public final class ObjectLike implements ProxyObject {
 
     private final Entry @NotNull[] table;
     private final Entry @NotNull[] insertion;
 
-    private Dictionary(Entry @NotNull[] table,
+    private ObjectLike(Entry @NotNull[] table,
                        Entry @NotNull[] insertion) {
         this.table = Objects.requireNonNull(table);
         this.insertion = Objects.requireNonNull(insertion);
     }
 
-    /// Constructs a [Builder].
+    /// Constructs an [Builder].
     ///
     /// Initializes a `Builder` instance with the default capacity of 16.
     ///
@@ -41,13 +43,25 @@ public final class Dictionary implements ProxyObject {
         return new Builder(16);
     }
 
-    /// Constructs a [Builder].
+    /// Constructs an [Builder].
     ///
     /// Initializes a `Builder` instance with the provided initial `capacity`.
     ///
     /// @since `0.1.0`
     public static @NotNull Builder builder(int capacity) {
         return new Builder(capacity);
+    }
+
+    public static <T> @NotNull Collector<T, Builder, ObjectLike> toObject(@NotNull Function<T, String> key,
+                                                                          @NotNull Function<T, Value> value) {
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(value);
+        return Collector.of(
+                ObjectLike::builder,
+                (builder, entry) -> builder.append(key.apply(entry), value.apply(entry)),
+                Builder::appendAll,
+                Builder::build
+        );
     }
 
     @ApiStatus.Internal
@@ -60,7 +74,7 @@ public final class Dictionary implements ProxyObject {
 
     /// Retrieves the [Value] associated with the provided `key`.
     ///
-    /// If no mapping for the given `key` was provided when building the `Dictionary`,
+    /// If no mapping for the given `key` was provided when building the `ObjectLike`,
     /// [Tau#undefined()] is returned instead.
     ///
     /// @since `0.1.0`
@@ -69,7 +83,7 @@ public final class Dictionary implements ProxyObject {
     @Override
     public @NotNull Value getMember(@NotNull String key) {
         Objects.requireNonNull(key);
-        var h = Dictionary.hash(key) & (this.table.length - 1);
+        var h = ObjectLike.hash(key) & (this.table.length - 1);
         for (int i = h, j = 0; j < this.table.length; i = (i + 1) & (this.table.length - 1), j++) {
             var entry = this.table[i];
             if (entry != null) {
@@ -82,9 +96,9 @@ public final class Dictionary implements ProxyObject {
         return Tau.undefined();
     }
 
-    /// Returns a view of the keys in the `Dictionary`.
+    /// Returns a view of the keys in the `ObjectLike`.
     ///
-    /// The returned [ProxyArray] is an **immutable** view of the keys in the `Dictionary`,
+    /// The returned [ProxyArray] is an **immutable** view of the keys in the `ObjectLike`,
     /// in the order they were inserted when building it.
     ///
     /// @since `0.1.0`
@@ -94,8 +108,8 @@ public final class Dictionary implements ProxyObject {
 
             @Override
             public Object get(long index) {
-                if (index >= 0 && index < Dictionary.this.insertion.length)
-                    return Dictionary.this.insertion[(int) index].key;
+                if (index >= 0 && index < ObjectLike.this.insertion.length)
+                    return ObjectLike.this.insertion[(int) index].key;
                 throw new ArrayIndexOutOfBoundsException();
             }
 
@@ -106,19 +120,19 @@ public final class Dictionary implements ProxyObject {
 
             @Override
             public long getSize() {
-                return Dictionary.this.insertion.length;
+                return ObjectLike.this.insertion.length;
             }
         };
     }
 
-    /// Determines whether the `Dictionary` contains a mapping associated with the provided `key`.
+    /// Determines whether the `ObjectLike` contains a mapping associated with the provided `key`.
     ///
     /// @since `0.1.0`
     /// @see #getMember(String)
     @Override
     public boolean hasMember(@NotNull String key) {
         Objects.requireNonNull(key);
-        var h = Dictionary.hash(key) & (this.table.length - 1);
+        var h = ObjectLike.hash(key) & (this.table.length - 1);
         for (int i = h, j = 0; j < this.table.length; i = (i + 1) & (this.table.length - 1), j++) {
             var entry = this.table[i];
             if (entry != null) {
@@ -131,7 +145,7 @@ public final class Dictionary implements ProxyObject {
         return false;
     }
 
-    /// Attempts to insert the provided mapping to the `Dictionary`.
+    /// Attempts to insert the provided mapping to the `ObjectLike`.
     ///
     /// Since `Dictionaries` are immutable after their construction,
     /// this method always throws an [UnsupportedOperationException].
@@ -144,27 +158,27 @@ public final class Dictionary implements ProxyObject {
         throw new UnsupportedOperationException("putMember()");
     }
 
-    /// Returns the string representation of the `Dictionary`.
+    /// Returns the string representation of the `ObjectLike`.
     ///
-    /// Since `Dictionaries` attempt to mimic standard JavaScript objects,
-    /// the string representation is always `[object Dictionary]`, similar
+    /// Since `ObjectLike`s attempt to mimic standard JavaScript objects,
+    /// the string representation is always `[object Object']`, similar
     /// to the standard `Object.toString()` method.
     ///
     /// @since `0.1.0`
     @Override
     public String toString() {
-        return "[object Dictionary]";
+        return "[object Object']";
     }
 
-    /// Represents a mutable `Dictionary` Builder.
+    /// Represents a mutable `ObjectLike` Builder.
     ///
-    /// A `Builder` lets one assemble a `Dictionary` incrementally.
+    /// A `Builder` lets one assemble a `ObjectLike` incrementally.
     /// The order in which the entries were `appended` is preserved
-    /// when `building` the `Dictionary`.
+    /// when `building` the `ObjectLike`.
     /// 
     /// @since `0.1.0`
-    /// @see Dictionary#builder() 
-    /// @see Dictionary#builder(int)
+    /// @see ObjectLike#builder() 
+    /// @see ObjectLike#builder(int)
     public static class Builder {
 
         private static final float LOAD_FACTOR = 0.75f;
@@ -174,8 +188,8 @@ public final class Dictionary implements ProxyObject {
         private int length;
 
         private Builder(int capacity) {
-            this.table     = new Dictionary.Entry[Builder.normalizeCapacity(capacity)];
-            this.insertion = new Dictionary.Entry[this.table.length];
+            this.table     = new ObjectLike.Entry[Builder.normalizeCapacity(capacity)];
+            this.insertion = new ObjectLike.Entry[this.table.length];
             this.length    = 0;
         }
 
@@ -199,11 +213,11 @@ public final class Dictionary implements ProxyObject {
             Objects.requireNonNull(value);
             if ((this.length + 1) >= this.table.length * Builder.LOAD_FACTOR)
                 this.table = this.rehash(this.table.length << 1);
-            var h = Dictionary.hash(key) & (this.table.length - 1);
+            var h = ObjectLike.hash(key) & (this.table.length - 1);
             for (int i = h ;; i = (i + 1) & (this.table.length - 1)) {
                 var entry = this.table[i];
                 if (entry == null) {
-                    this.table[i] = new Dictionary.Entry(key, value);
+                    this.table[i] = new ObjectLike.Entry(key, value);
                     if (this.length >= this.insertion.length)
                         this.insertion = Arrays.copyOf(this.insertion, this.insertion.length << 1);
                     this.insertion[this.length++] = this.table[i];
@@ -214,28 +228,38 @@ public final class Dictionary implements ProxyObject {
             }
         }
 
-        /// Assembles the `Dictionary`.
+        @Contract("_ -> this")
+        public @NotNull Builder appendAll(@NotNull Builder builder) {
+            Objects.requireNonNull(builder);
+            for (var entry : builder.insertion) {
+                if (entry != null)
+                    this.append(entry.key, entry.value);
+            }
+            return this;
+        }
+
+        /// Assembles the `ObjectLike`.
         ///
-        /// Assembles the final `Dictionary` from the mappings that were
+        /// Assembles the final `ObjectLike` from the mappings that were
         /// previously `appended` to the `Builder`.
         ///
         /// The `build()` method may be called multiple times on the same `Builder`.
         ///
         /// @since `0.1.0`
         /// @see #append(String, Value)
-        public @NotNull Dictionary build() {
-            return new Dictionary(
+        public @NotNull ObjectLike build() {
+            return new ObjectLike(
                     Arrays.copyOf(this.table, this.table.length),
                     Arrays.copyOf(this.insertion, this.length)
             );
         }
 
         @ApiStatus.Internal
-        private Dictionary.Entry @NotNull[] rehash(int length) {
-            var buffer = new Dictionary.Entry[length];
+        private Entry @NotNull[] rehash(int length) {
+            var buffer = new Entry[length];
             for (var entry : this.table) {
                 if (entry != null) {
-                    var h = Dictionary.hash(entry.key) & (buffer.length - 1);
+                    var h = ObjectLike.hash(entry.key) & (buffer.length - 1);
                     for (int i = h ;; i = (i + 1) & (buffer.length - 1)) {
                         if (buffer[i] != null)
                             continue;

@@ -12,6 +12,7 @@ import dev.fusemc.tau.template.collection.Iterable;
 import dev.fusemc.tau.template.collection.tuple.DiTuple;
 import dev.fusemc.tau.template.collection.tuple.MonoTuple;
 import dev.fusemc.tau.template.dictionary.Dispatch;
+import dev.fusemc.tau.template.dictionary.HashLike;
 import dev.fusemc.tau.template.dictionary.record.*;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.dictionary.record.Record;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -290,6 +292,13 @@ public interface Template<T> {
         return new Union<>(Arrays.copyOf(alternatives, alternatives.length));
     }
 
+    static @NotNull Template<@NotNull String> enumerate(@NotNull String @NotNull... alternatives) {
+        Objects.requireNonNull(alternatives);
+        return new Union<>(Arrays.stream(alternatives)
+                .map(Literal::new)
+                .toArray(Literal[]::new));
+    }
+
     static <T> @NotNull Template<@NotNull T> reference(@NotNull Class<T> type) {
         Objects.requireNonNull(type);
         return new Reference<>(type);
@@ -342,6 +351,13 @@ public interface Template<T> {
         Objects.requireNonNull(b);
         Objects.requireNonNull(constructor);
         return new DiTuple<>(a, b, constructor);
+    }
+
+    static <K, V> @NotNull Template<@NotNull Map<K, V>> map(@NotNull Template<K> key,
+                                                            @NotNull Template<V> value) {
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(value);
+        return new HashLike<>(key, value);
     }
 
     static <T, A> @NotNull Record<T> record(@NotNull Property<T, A> a,

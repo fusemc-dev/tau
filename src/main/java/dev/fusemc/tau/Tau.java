@@ -3,6 +3,7 @@ package dev.fusemc.tau;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.graalvm.polyglot.proxy.Proxy;
@@ -483,31 +484,6 @@ public final class Tau {
             }
             return Description.attach(Description.ELLIPSIS, Domain.POLYGLOT);
         }
-        if (value.hasMembers()) {
-            if (visited.add(value)) {
-                var keys = value.getMemberKeys();
-                var buffer = new Description[keys.size()];
-                var i = 0;
-                for (var key : keys) {
-                    var member = value.getMember(key);
-                    var description = Tau.describe(member, visited.branch(), constant);
-                    buffer[i++] = Description.concat(
-                            Description.literal(key),
-                            Description.delimiter(": "),
-                            description
-                    );
-                }
-                return Description.attach(Description.concat(
-                        Description.delimiter('{'),
-                        Description.join(
-                                Description.delimiter(", "),
-                                buffer
-                        ),
-                        Description.delimiter('}')
-                ), Domain.POLYGLOT);
-            }
-            return Description.attach(Description.ELLIPSIS, Domain.POLYGLOT);
-        }
         if (value.hasHashEntries()) {
             if (visited.add(value)) {
                 var length = (int) value.getHashSize();
@@ -536,12 +512,12 @@ public final class Tau {
                         );
                     }
                     return Description.attach(Description.concat(
-                            Description.delimiter("{"),
+                            Description.delimiter('{'),
                             Description.join(
                                     Description.delimiter(", "),
                                     buffer
                             ),
-                            Description.delimiter(" }")
+                            Description.delimiter('}')
                     ), Domain.POLYGLOT);
                 }
                 var keys = new LinkedHashSet<Description>();
@@ -569,6 +545,31 @@ public final class Tau {
                         Description.delimiter('}')
                 ), Domain.POLYGLOT);
             }
+        }
+        if (value.hasMembers()) {
+            if (visited.add(value)) {
+                var keys = value.getMemberKeys();
+                var buffer = new Description[keys.size()];
+                var i = 0;
+                for (var key : keys) {
+                    var member = value.getMember(key);
+                    var description = Tau.describe(member, visited.branch(), constant);
+                    buffer[i++] = Description.concat(
+                            Description.literal(key),
+                            Description.delimiter(": "),
+                            description
+                    );
+                }
+                return Description.attach(Description.concat(
+                        Description.delimiter('{'),
+                        Description.join(
+                                Description.delimiter(", "),
+                                buffer
+                        ),
+                        Description.delimiter('}')
+                ), Domain.POLYGLOT);
+            }
+            return Description.attach(Description.ELLIPSIS, Domain.POLYGLOT);
         }
         if (value.isHostObject())
             return Tau.describe((Object) value.asHostObject(), visited, constant);
