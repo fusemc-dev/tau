@@ -491,8 +491,8 @@ public final class Tau {
                     return Description.attach(Description.delimiter("{}"), Domain.POLYGLOT);
                 var iterator = Tau.lower(
                         Template.iterator(Template.<Value[], Value, Value>tuple(
-                                Template.element(Template.ANY, values -> values[0]),
-                                Template.element(Template.ANY, values -> values[1]),
+                                Template.ANY.element(values -> values[0]),
+                                Template.ANY.element(values -> values[1]),
                                 (a, b) -> new Value[] {a, b}
                         )),
                         value.getHashEntriesIterator()
@@ -667,8 +667,8 @@ public final class Tau {
                 var length = (int) map.getHashSize();
                 var iterator = Tau.lower(
                         Template.iterator(Template.<Value[], Value, Value>tuple(
-                                Template.element(Template.ANY, tuple -> tuple[0]),
-                                Template.element(Template.ANY, tuple -> tuple[1]),
+                                Template.ANY.element(tuple -> tuple[0]),
+                                Template.ANY.element(tuple -> tuple[1]),
                                 (a, b) -> new Value[] {a, b}
                         )),
                         Value.asValue(map.getHashEntriesIterator())

@@ -112,8 +112,8 @@ public record HashLike<K, V>(@NotNull Template<K> key,
                 var buffer = new LinkedHashMap<K, V>((int) map.getHashSize());
                 var entries = Tau.lower(
                         Template.iterator(Template.<Value[], Value, Value>tuple(
-                                Template.element(Template.ANY, entry -> entry[0]),
-                                Template.element(Template.ANY, entry -> entry[1]),
+                                Template.ANY.element(entry -> entry[0]),
+                                Template.ANY.element(entry -> entry[1]),
                                 (a, b) -> new Value[]{a, b}
                         )),
                         Value.asValue(map.getHashEntriesIterator())

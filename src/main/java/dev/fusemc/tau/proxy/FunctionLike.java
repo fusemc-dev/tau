@@ -7,6 +7,7 @@ import dev.fusemc.tau.TypeException;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -90,7 +91,7 @@ public final class FunctionLike implements InvocationHandler {
 
     @ApiStatus.Internal
     @SuppressWarnings("unchecked")
-    private static <T> @NotNull Option<T> cast(@NotNull Class<T> clazz, @NotNull Object value) {
+    private static <T> @NotNull Option<T> cast(@NotNull Class<T> clazz, @Nullable Object value) {
         if (clazz == byte.class) {
             if (value instanceof Byte b)
                 return Option.some((T) b);
@@ -131,6 +132,11 @@ public final class FunctionLike implements InvocationHandler {
                 return Option.some((T) c);
             return Option.none();
         }
+        if (clazz == void.class) {
+            if (value == null)
+                return Option.some(null);
+            return Option.none();
+        }
         if (clazz.isInstance(value))
             return Option.some(clazz.cast(value));
         return Option.none();
@@ -149,7 +155,7 @@ public final class FunctionLike implements InvocationHandler {
             return false;
         }
         if (method.equals(this.target)) {
-            var value = Tau.lower(this.template, this.delegate.execute(this.spreadVariadic(args)));
+            var value = Tau.lower(this.template, this.delegate.execute(args == null ? new Object[0] : this.spreadVariadic(args)));
             var option = FunctionLike.cast(this.target.getReturnType(), value);
             if (option instanceof Option.Some<?>(var result))
                 return result;

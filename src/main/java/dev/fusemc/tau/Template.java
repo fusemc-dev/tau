@@ -9,8 +9,7 @@ import dev.fusemc.tau.element.Property;
 import dev.fusemc.tau.template.*;
 import dev.fusemc.tau.template.collection.Array;
 import dev.fusemc.tau.template.collection.Iterable;
-import dev.fusemc.tau.template.collection.tuple.DiTuple;
-import dev.fusemc.tau.template.collection.tuple.MonoTuple;
+import dev.fusemc.tau.template.collection.tuple.*;
 import dev.fusemc.tau.template.dictionary.Dispatch;
 import dev.fusemc.tau.template.dictionary.HashLike;
 import dev.fusemc.tau.template.dictionary.record.*;
@@ -330,13 +329,6 @@ public interface Template<T> {
         return new Functional<>(type, returns);
     }
 
-    static <T, A> @NotNull Element<T, A> element(@NotNull Template<A> template,
-                                                 @NotNull Accessor<T, A> accessor) {
-        Objects.requireNonNull(template);
-        Objects.requireNonNull(accessor);
-        return new Element<>(template, accessor);
-    }
-
     static <T, A> @NotNull Template<T> tuple(@NotNull Element<T, A> a,
                                              @NotNull MonoConstructor<T, A> constructor) {
         Objects.requireNonNull(a);
@@ -351,6 +343,45 @@ public interface Template<T> {
         Objects.requireNonNull(b);
         Objects.requireNonNull(constructor);
         return new DiTuple<>(a, b, constructor);
+    }
+
+    static <T, A, B, C> @NotNull Template<T> tuple(@NotNull Element<T, A> a,
+                                                   @NotNull Element<T, B> b,
+                                                   @NotNull Element<T, C> c,
+                                                   @NotNull TriConstructor<T, A, B, C> constructor) {
+        Objects.requireNonNull(a);
+        Objects.requireNonNull(b);
+        Objects.requireNonNull(c);
+        Objects.requireNonNull(constructor);
+        return new TriTuple<>(a, b, c, constructor);
+    }
+
+    static <T, A, B, C, D> @NotNull Template<T> tuple(@NotNull Element<T, A> a,
+                                                      @NotNull Element<T, B> b,
+                                                      @NotNull Element<T, C> c,
+                                                      @NotNull Element<T, D> d,
+                                                      @NotNull TetraConstructor<T, A, B, C, D> constructor) {
+        Objects.requireNonNull(a);
+        Objects.requireNonNull(b);
+        Objects.requireNonNull(c);
+        Objects.requireNonNull(d);
+        Objects.requireNonNull(constructor);
+        return new TetraTuple<>(a, b, c, d, constructor);
+    }
+
+    static <T, A, B, C, D, E> @NotNull Template<T> tuple(@NotNull Element<T, A> a,
+                                                         @NotNull Element<T, B> b,
+                                                         @NotNull Element<T, C> c,
+                                                         @NotNull Element<T, D> d,
+                                                         @NotNull Element<T, E> e,
+                                                         @NotNull PentaConstructor<T, A, B, C, D, E> constructor) {
+        Objects.requireNonNull(a);
+        Objects.requireNonNull(b);
+        Objects.requireNonNull(c);
+        Objects.requireNonNull(d);
+        Objects.requireNonNull(e);
+        Objects.requireNonNull(constructor);
+        return new PentaTuple<>(a, b, c, d, e, constructor);
     }
 
     static <K, V> @NotNull Template<@NotNull Map<K, V>> map(@NotNull Template<K> key,
@@ -415,9 +446,15 @@ public interface Template<T> {
         return new PentaRecord<>(a, b, c, d, e, constructor);
     }
 
+    default <V> Element<V, T> element(@NotNull Accessor<V, T> accessor) {
+        Objects.requireNonNull(accessor);
+        return new Element<>(this, accessor);
+    }
+
     default <V> Property.Required<V, T> property(@NotNull String name,
                                                  @NotNull Accessor<V, T> accessor) {
         Objects.requireNonNull(name);
+        Objects.requireNonNull(accessor);
         return new Property.Required<>(name, this, accessor);
     }
 
