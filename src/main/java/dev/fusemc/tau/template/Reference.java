@@ -25,6 +25,12 @@ public record Reference<T>(@NotNull Class<T> type) implements Template<@NotNull 
                 return Option.some(this.type.cast(host));
             return Option.none();
         }
+        if (value.isProxyObject()) {
+            var proxy = value.asProxyObject();
+            if (this.type.isInstance(proxy))
+                return Option.some(this.type.cast(proxy));
+            return Option.none();
+        }
         return Option.none();
     }
 

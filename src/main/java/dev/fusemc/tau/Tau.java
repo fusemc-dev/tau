@@ -1,6 +1,9 @@
 package dev.fusemc.tau;
 
+import com.manchickas.charcoal.Charcoal;
 import com.manchickas.optionated.Option;
+import com.oracle.truffle.js.runtime.JSEngine;
+import com.oracle.truffle.js.runtime.Symbol;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
 import org.graalvm.polyglot.Context;
@@ -96,7 +99,7 @@ public final class Tau {
     public static boolean isUndefined(@NotNull Value value) {
         Objects.requireNonNull(value);
         if (Tau.UNDEFINED_SENTINEL != null)
-            return value.isNull() && value.hashCode() == Tau.UNDEFINED_SENTINEL.hashCode();
+            return value.hashCode() == Tau.UNDEFINED_SENTINEL.hashCode();
         return false;
     }
 
@@ -158,7 +161,7 @@ public final class Tau {
             }
             if (o instanceof Boolean bl) {
                 if (constant)
-                    return bl ? Description.TRUE : Description.FALSE;
+                    return Description.attach(bl ? Description.TRUE : Description.FALSE, Domain.HOST);
                 return Description.attach(Description.BOOLEAN, Domain.HOST);
             }
             if (o instanceof byte[] bytes) {
@@ -435,7 +438,7 @@ public final class Tau {
         }
         if (value.isBoolean()) {
             if (constant)
-                return value.asBoolean() ? Description.TRUE : Description.FALSE;
+                return Description.attach(value.asBoolean() ? Description.TRUE : Description.FALSE, Domain.POLYGLOT);
             return Description.attach(Description.BOOLEAN, Domain.POLYGLOT);
         }
         if (Tau.isUndefined(value))
@@ -722,7 +725,7 @@ public final class Tau {
             }
             return Description.attach(Description.ELLIPSIS, Domain.PROXY);
         }
-        return Description.attach(Description.UNKNOWN, Domain.PROXY);
+        return Description.attach(Description.reference(proxy.getClass()), Domain.HOST);
     }
 
     /// Describes the provided reflected [Type].
@@ -812,7 +815,7 @@ public final class Tau {
     @ApiStatus.Internal
     private static @Nullable Object loadUndefined() {
         try {
-            var clazz = Class.forName("com.oracle.truffle.js.runtime.objects.Undefined");
+            var clazz    = Class.forName("com.oracle.truffle.js.runtime.objects.Undefined");
             var instance = clazz.getDeclaredField("instance");
             if (instance.trySetAccessible())
                 return instance.get(null);
