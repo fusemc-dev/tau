@@ -28,7 +28,7 @@ public interface Domain {
             return STYLE.wrap('/') + description.stringify(this) + STYLE.wrap('/');
         }
     };
-    @NotNull Domain TEMPLATE = new Domain() {
+    @NotNull Domain DESCRIBE = new Domain() {
 
         private static final Style STYLE = Charcoal.foreground(0xC77DBB);
 

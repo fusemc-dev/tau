@@ -9,12 +9,21 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Objects;
 
+/// Represents a function-like.
+///
+/// ---
+/// Defines an [InvocationHandler] that acts as an implementation
+/// of a **functional** interface in terms of a Polyglot [Value].
+///
+/// @since `0.1.0`
 public final class FunctionLike implements InvocationHandler {
 
     private static final Method TO_STRING;
@@ -22,19 +31,20 @@ public final class FunctionLike implements InvocationHandler {
     private static final Method EQUALS;
 
     private final @NotNull Method target;
-    private final @NotNull Template<?> template;
     private final @NotNull Value delegate;
+    private final @Nullable Template<?> template;
 
     public FunctionLike(@NotNull Method target,
-                        @NotNull Template<?> template,
-                        @NotNull Value delegate) {
+                        @NotNull Value delegate,
+                        @Nullable Template<?> template) {
         this.target   = Objects.requireNonNull(target);
-        this.template = Objects.requireNonNull(template);
         this.delegate = Objects.requireNonNull(delegate);
+        this.template = template;
     }
 
     @ApiStatus.Internal
-    private static Object @NotNull [] box(Object array) {
+    private static Object @NotNull [] box(@NotNull Object array) {
+        Objects.requireNonNull(array);
         return switch (array) {
             case byte[] bytes -> {
                 var buffer = new Byte[bytes.length];
@@ -143,7 +153,11 @@ public final class FunctionLike implements InvocationHandler {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
+    public Object invoke(@NotNull Object proxy,
+                         @NotNull Method method,
+                         Object[] args) throws Throwable {
+        Objects.requireNonNull(proxy);
+        Objects.requireNonNull(method);
         if (method.equals(FunctionLike.TO_STRING))
             return this.delegate.toString();
         if (method.equals(FunctionLike.HASH_CODE))
@@ -155,11 +169,22 @@ public final class FunctionLike implements InvocationHandler {
             return false;
         }
         if (method.equals(this.target)) {
-            var value = Tau.lower(this.template, this.delegate.execute(args == null ? new Object[0] : this.spreadVariadic(args)));
-            var option = FunctionLike.cast(this.target.getReturnType(), value);
-            if (option instanceof Option.Some<?>(var result))
-                return result;
-            throw new TypeException(Tau.describe(value), Tau.describe(this.target.getGenericReturnType()));
+            var result = this.delegate.execute(args == null ? new Object[0] : this.spreadVariadic(args));
+            if (this.template != null) {
+                var value = Tau.lower(this.template, result);
+                var option = FunctionLike.cast(this.target.getReturnType(), value);
+                if (option instanceof Option.Some<?>(var wrapped))
+                    return wrapped;
+                throw new TypeException(Tau.describe(value), Tau.describe(this.target.getGenericReturnType()));
+            }
+            return result;
+        }
+        if (method.isDefault()) {
+            var lookup         = MethodHandles.privateLookupIn(method.getDeclaringClass(), MethodHandles.lookup());
+            var implementation = lookup.unreflectSpecial(method, method.getDeclaringClass()).bindTo(proxy);
+            if (args == null)
+                return implementation.invokeWithArguments();
+            return implementation.invokeWithArguments(args);
         }
         throw new AssertionError();
     }
@@ -180,8 +205,8 @@ public final class FunctionLike implements InvocationHandler {
         if (obj == this) return true;
         if (obj instanceof FunctionLike other)
             return this.target.equals(other.target)
-                    && this.template.equals(other.template)
-                    && this.delegate.equals(other.delegate);
+                    && this.delegate.equals(other.delegate)
+                    && Objects.equals(this.template, other.template);
         return false;
     }
 

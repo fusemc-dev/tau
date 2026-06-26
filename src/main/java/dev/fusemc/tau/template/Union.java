@@ -45,7 +45,7 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
                 Arrays.stream(this.alternatives)
                     .map(t -> t.describe(points))
                     .toArray(Description[]::new)
-        ), Domain.TEMPLATE);
+        ), Domain.DESCRIBE);
     }
 
     @Override

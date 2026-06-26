@@ -28,6 +28,7 @@ public interface Description {
     @NotNull Description UNDEFINED   = Description.keyword("undefined");
     @NotNull Description ANY         = Description.keyword("any");
     @NotNull Description UNKNOWN     = Description.keyword("unknown");
+    @NotNull Description VOID        = Description.keyword("void");
     @NotNull Description ELLIPSIS    = Description.delimiter("...");
 
     static @NotNull Description attach(@NotNull Description description, @NotNull Domain domain) {

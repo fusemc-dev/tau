@@ -174,7 +174,7 @@ public record HashLike<K, V>(@NotNull Template<K> key,
                         this.value.describe(points),
                         Description.delimiter('}')
                 ),
-                Domain.TEMPLATE
+                Domain.DESCRIBE
         );
     }
 }

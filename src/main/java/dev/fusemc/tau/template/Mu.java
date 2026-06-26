@@ -43,8 +43,8 @@ public final class Mu<T> implements Template<T> {
         if (this.delegate == null)
             throw new AssertionError("Attempted to describe() a Mu within the constructor function.");
         if (points.add(this))
-            return Description.attach(this.delegate.describe(points.branch()), Domain.TEMPLATE);
-        return Description.attach(Description.ELLIPSIS, Domain.TEMPLATE);
+            return Description.attach(this.delegate.describe(points.branch()), Domain.DESCRIBE);
+        return Description.attach(Description.ELLIPSIS, Domain.DESCRIBE);
     }
 
     @Override

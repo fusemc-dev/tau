@@ -72,7 +72,7 @@ public record Dispatch<T, A>(
                         Description.ELLIPSIS
                 ),
                 Description.delimiter('}')
-        ), Domain.TEMPLATE);
+        ), Domain.DESCRIBE);
     }
 
     @Override

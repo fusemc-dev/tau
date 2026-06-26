@@ -1,6 +1,5 @@
 package dev.fusemc.tau.template.collection;
 
-import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
@@ -9,11 +8,9 @@ import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
-import org.graalvm.polyglot.proxy.ProxyIterable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.Iterable;
 import java.util.*;
 import java.util.function.IntFunction;
 
@@ -224,7 +221,7 @@ public record Array<T>(@NotNull Template<T> element,
 
     /// Describes the `Array`.
     ///
-    /// The returned [Description] will be annotated as having come from [Domain#TEMPLATE].
+    /// The returned [Description] will be annotated as having come from [Domain#DESCRIBE].
     ///
     /// An `Array` is described as follows, where `δ` denotes the `Description`
     /// of the associated `element` [Template]:
@@ -244,7 +241,7 @@ public record Array<T>(@NotNull Template<T> element,
                         Description.delimiter(')')
                 ),
                 Description.delimiter("[]")
-        ), Domain.TEMPLATE);
+        ), Domain.DESCRIBE);
     }
 
     @Override

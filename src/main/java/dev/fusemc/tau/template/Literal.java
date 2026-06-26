@@ -37,7 +37,7 @@ public record Literal(@NotNull String literal) implements Template<String> {
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Description.literal(this.literal), Domain.TEMPLATE);
+        return Description.attach(Description.literal(this.literal), Domain.DESCRIBE);
     }
 
     @Override

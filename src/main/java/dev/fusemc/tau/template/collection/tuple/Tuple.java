@@ -89,7 +89,7 @@ public interface Tuple<T> extends Template<T> {
 
     /// Describes the `Tuple`.
     ///
-    /// The returned [Description] will be annotated as having come from [Domain#TEMPLATE].
+    /// The returned [Description] will be annotated as having come from [Domain#DESCRIBE].
     ///
     /// A `Tuple` is described as follows, where `δₙ` denotes the `Description`
     /// of the n-th [Template] of the tuple:

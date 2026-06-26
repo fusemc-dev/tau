@@ -109,7 +109,7 @@ public record Iterable<T>(@NotNull Template<T> element) implements Template<Iter
 
     /// Describes the `Iterable`.
     ///
-    /// The returned [Description] will be annotated as having come from [Domain#TEMPLATE].
+    /// The returned [Description] will be annotated as having come from [Domain#DESCRIBE].
     ///
     /// An `Iterable` is described as follows, where `δ` denotes the `Description`
     /// of the associated `element` [Template]:
@@ -126,7 +126,7 @@ public record Iterable<T>(@NotNull Template<T> element) implements Template<Iter
         return Description.attach(Description.concat(
                 Description.delimiter("..."),
                 this.element.describe(points)
-        ), Domain.TEMPLATE);
+        ), Domain.DESCRIBE);
     }
 
     @Override

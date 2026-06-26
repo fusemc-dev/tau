@@ -73,7 +73,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.NUMBER, Domain.TEMPLATE);
+            return Description.attach(Description.NUMBER, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull String> STRING = new Template<>() {
@@ -94,7 +94,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.STRING, Domain.TEMPLATE);
+            return Description.attach(Description.STRING, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Boolean> BOOLEAN = new Template<>() {
@@ -115,7 +115,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BOOLEAN, Domain.TEMPLATE);
+            return Description.attach(Description.BOOLEAN, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Byte> BYTE = new Numerical<>() {
@@ -129,7 +129,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BYTE, Domain.TEMPLATE);
+            return Description.attach(Description.BYTE, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Short> SHORT = new Numerical<>() {
@@ -143,7 +143,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.SHORT, Domain.TEMPLATE);
+            return Description.attach(Description.SHORT, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Integer> INTEGER = new Numerical<>() {
@@ -157,7 +157,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.INTEGER, Domain.TEMPLATE);
+            return Description.attach(Description.INTEGER, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Long> LONG = new Numerical<>() {
@@ -171,7 +171,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.LONG, Domain.TEMPLATE);
+            return Description.attach(Description.LONG, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Float> FLOAT = new Numerical<>() {
@@ -185,7 +185,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.FLOAT, Domain.TEMPLATE);
+            return Description.attach(Description.FLOAT, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Double> DOUBLE = new Numerical<>() {
@@ -199,7 +199,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.DOUBLE, Domain.TEMPLATE);
+            return Description.attach(Description.DOUBLE, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull BigInteger> BIG_INTEGER = new Numerical<>() {
@@ -213,7 +213,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BIG_INTEGER, Domain.TEMPLATE);
+            return Description.attach(Description.BIG_INTEGER, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@Nullable Void> UNDEFINED = new Template<>() {
@@ -232,7 +232,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.UNDEFINED, Domain.TEMPLATE);
+            return Description.attach(Description.UNDEFINED, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@Nullable Void> NULL = new Template<>() {
@@ -251,7 +251,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.NULL, Domain.TEMPLATE);
+            return Description.attach(Description.NULL, Domain.DESCRIBE);
         }
     };
     @NotNull Template<@NotNull Value> ANY = new Template<>() {
@@ -271,7 +271,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.ANY, Domain.TEMPLATE);
+            return Description.attach(Description.ANY, Domain.DESCRIBE);
         }
     };
 
@@ -316,16 +316,20 @@ public interface Template<T> {
     }
 
     static <T, A> @NotNull Template<@NotNull T> dispatch(@NotNull Property<T, A> discriminant,
-                                                @NotNull Function<A, Option<Record<? extends T>>> dispatch) {
+                                                         @NotNull Function<A, Option<Record<? extends T>>> dispatch) {
         Objects.requireNonNull(discriminant);
         Objects.requireNonNull(dispatch);
         return new Dispatch<>(discriminant, dispatch);
     }
 
-    static <T> @NotNull Template<@NotNull T> functional(@NotNull Class<T> type,
-                                                        @NotNull Template<?> returns) {
+    static <T> @NotNull Template<@NotNull T> functional(@NotNull Class<T> type) {
         Objects.requireNonNull(type);
-        Objects.requireNonNull(returns);
+        return new Functional<>(type, null);
+    }
+
+    static <T> @NotNull Template<@NotNull T> functional(@NotNull Class<T> type,
+                                                        @Nullable Template<?> returns) {
+        Objects.requireNonNull(type);
         return new Functional<>(type, returns);
     }
 
@@ -549,7 +553,7 @@ public interface Template<T> {
 
             @Override
             public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-                return Description.attach(forward.apply(Template.this.describe(points)), Domain.TEMPLATE);
+                return Description.attach(forward.apply(Template.this.describe(points)), Domain.DESCRIBE);
             }
         };
     }
@@ -590,7 +594,7 @@ public interface Template<T> {
     /// Describe the `Template`.
     ///
     /// Produce a [Description] describing the type the `Template` accepts. The returned `Description`
-    /// should be annotated as having come from [Domain#TEMPLATE].
+    /// should be annotated as having come from [Domain#DESCRIBE].
     ///
     /// If the `Template` is composed of others, it is the responsibility of the `Template` to
     /// pass the received `points` [Scope] down when describing its dependencies, in order

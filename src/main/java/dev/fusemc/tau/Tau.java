@@ -1,9 +1,6 @@
 package dev.fusemc.tau;
 
-import com.manchickas.charcoal.Charcoal;
 import com.manchickas.optionated.Option;
-import com.oracle.truffle.js.runtime.JSEngine;
-import com.oracle.truffle.js.runtime.Symbol;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
 import org.graalvm.polyglot.Context;
@@ -28,7 +25,7 @@ public final class Tau {
 
     @ApiStatus.Internal
     private static final @Nullable Object UNDEFINED_SENTINEL = Tau.loadUndefined();
-    private static final int CONSTANT_LENGTH_THRESHOLD = 6;
+    private static final int LENGTH_THRESHOLD = 5;
 
     private Tau() {
         throw new UnsupportedOperationException();
@@ -56,9 +53,10 @@ public final class Tau {
         throw new TypeException(Tau.describe(value), template.describe(Scope.hashScope()));
     }
 
-    /// Attempts to [Template#raise(java.lang.Object)]  the provided [T] using the provided
+    /// Attempt to [Template#raise(java.lang.Object)]  the provided [T] using the provided
     /// [Template].
     ///
+    /// ---
     /// If the provided `value` does not satisfy the requested [Template],
     /// a [TypeException] is thrown in the form of:
     ///
@@ -77,8 +75,9 @@ public final class Tau {
         throw new TypeException(Tau.describe(value), template.describe(Scope.hashScope()));
     }
 
-    /// Returns an [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type) [Value].
+    /// Return an [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type) [Value].
     ///
+    /// ---
     /// If the `undefined` sentinel couldn't be accessed at runtime,
     /// the method degrades to returning `Value.asValue(null)`.
     ///
@@ -88,8 +87,9 @@ public final class Tau {
         return Value.asValue(Tau.UNDEFINED_SENTINEL);
     }
 
-    /// Determines whether the provided [Value] is explicitly [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type).
+    /// Determine whether the provided [Value] is explicitly [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type).
     ///
+    /// ---
     /// If the `undefined` sentinel couldn't be accessed at runtime,
     /// the method degrades to always returning `false`.
     ///
@@ -103,8 +103,9 @@ public final class Tau {
         return false;
     }
 
-    /// Determines whether the provided `Value` is explicitly `null`.
+    /// Determine whether the provided `Value` is explicitly `null`.
     ///
+    /// ---
     /// This method differs from [Value#isNull()] in that it doesn't consider
     /// [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type)
     /// a "_nullable_" value.
@@ -121,8 +122,22 @@ public final class Tau {
         return value.isNull();
     }
 
-    /// Describes the provided [Object].
+    /// Return the **length threshold**.
     ///
+    /// ---
+    /// The 'length threshold' is the largest a structure can get before
+    /// its description is collapsed into a narrow form. It corresponds
+    /// to the biggest arity of the `Template.record()` and `Template.tuple()`
+    /// methods.
+    ///
+    /// @since `0.2.4`
+    public static int lengthThreshold() {
+        return Tau.LENGTH_THRESHOLD;
+    }
+
+    /// Describe the provided [Object].
+    ///
+    /// ---
     /// Produces a [Description] based on the given `Object` by inspecting its
     /// runtime value. Unless redirected to an overload, the produced
     /// `Description` will be annotated as having come from [Domain#HOST].
@@ -165,7 +180,7 @@ public final class Tau {
                 return Description.attach(Description.BOOLEAN, Domain.HOST);
             }
             if (o instanceof byte[] bytes) {
-                if (constant && bytes.length > 0 && bytes.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && bytes.length > 0 && bytes.length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[bytes.length];
                     for (var i = 0; i < bytes.length; i++)
                         buffer[i] = Tau.describe(bytes[i], visited.branch(), true);
@@ -184,7 +199,7 @@ public final class Tau {
                 ), Domain.HOST);
             }
             if (o instanceof short[] shorts) {
-                if (constant && shorts.length > 0 && shorts.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && shorts.length > 0 && shorts.length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[shorts.length];
                     for (var i = 0; i < shorts.length; i++)
                         buffer[i] = Tau.describe(shorts[i], visited.branch(), true);
@@ -203,7 +218,7 @@ public final class Tau {
                 ), Domain.HOST);
             }
             if (o instanceof int[] ints) {
-                if (constant && ints.length > 0 && ints.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && ints.length > 0 && ints.length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[ints.length];
                     for (var i = 0; i < ints.length; i++)
                         buffer[i] = Tau.describe(ints[i], visited.branch(), true);
@@ -222,7 +237,7 @@ public final class Tau {
                 ), Domain.HOST);
             }
             if (o instanceof long[] longs) {
-                if (constant && longs.length > 0 && longs.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && longs.length > 0 && longs.length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[longs.length];
                     for (var i = 0; i < longs.length; i++)
                         buffer[i] = Tau.describe(longs[i], visited.branch(), true);
@@ -241,7 +256,7 @@ public final class Tau {
                 ), Domain.HOST);
             }
             if (o instanceof float[] floats) {
-                if (constant && floats.length > 0 && floats.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && floats.length > 0 && floats.length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[floats.length];
                     for (var i = 0; i < floats.length; i++)
                         buffer[i] = Tau.describe(floats[i], visited.branch(), true);
@@ -260,7 +275,7 @@ public final class Tau {
                 ), Domain.HOST);
             }
             if (o instanceof double[] doubles) {
-                if (constant && doubles.length > 0 && doubles.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && doubles.length > 0 && doubles.length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[doubles.length];
                     for (var i = 0; i < doubles.length; i++)
                         buffer[i] = Tau.describe(doubles[i], visited.branch(), true);
@@ -279,7 +294,7 @@ public final class Tau {
                 ), Domain.HOST);
             }
             if (o instanceof boolean[] booleans) {
-                if (constant && booleans.length > 0 && booleans.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && booleans.length > 0 && booleans.length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[booleans.length];
                     for (var i = 0; i < booleans.length; i++)
                         buffer[i] = Tau.describe(booleans[i], visited.branch(), true);
@@ -304,7 +319,7 @@ public final class Tau {
                                 Description.ANY,
                                 Description.delimiter("[]")
                         ), Domain.HOST);
-                    if (constant && os.length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                    if (constant && os.length <= Tau.LENGTH_THRESHOLD) {
                         var buffer = new Description[os.length];
                         for (var i = 0; i < os.length; i++)
                             buffer[i] = Tau.describe(os[i], visited.branch(), true);
@@ -339,7 +354,7 @@ public final class Tau {
                     var length = map.size();
                     if (length == 0)
                         return Description.attach(Description.delimiter("{}"), Domain.HOST);
-                    if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                    if (constant && length <= Tau.LENGTH_THRESHOLD) {
                         var buffer = new Description[length];
                         var i = 0;
                         for (var entry : map.entrySet()) {
@@ -453,7 +468,7 @@ public final class Tau {
                             Description.ANY,
                             Description.delimiter("[]")
                     ), Domain.POLYGLOT);
-                if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[length];
                     for (var i = 0; i < length; i++) {
                         var element = value.getArrayElement(i);
@@ -500,7 +515,7 @@ public final class Tau {
                         )),
                         value.getHashEntriesIterator()
                 );
-                if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[length];
                     for (var i = 0; iterator.hasNext(); i++) {
                         var entry = iterator.next();
@@ -600,6 +615,9 @@ public final class Tau {
                                                  boolean constant) {
         Objects.requireNonNull(proxy);
         Objects.requireNonNull(visited);
+        var type = proxy.getClass();
+        if (type.isAnnotationPresent(Documented.class))
+            return Description.attach(Description.reference(type), Domain.HOST);
         if (proxy instanceof ProxyArray array) {
             if (visited.add(array)) {
                 var length = (int) array.getSize();
@@ -608,7 +626,7 @@ public final class Tau {
                             Description.ANY,
                             Description.delimiter("[]")
                     ), Domain.PROXY);
-                if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[length];
                     for (var i = 0; i < length; i++)
                         buffer[i] = Tau.describe(array.get(i), visited.branch(), true);
@@ -678,7 +696,7 @@ public final class Tau {
                 );
                 if (length == 0)
                     return Description.attach(Description.delimiter("{}"), Domain.PROXY);
-                if (constant && length < Tau.CONSTANT_LENGTH_THRESHOLD) {
+                if (constant && length <= Tau.LENGTH_THRESHOLD) {
                     var buffer = new Description[length];
                     for (var i = 0; iterator.hasNext(); ) {
                         var entry = iterator.next();

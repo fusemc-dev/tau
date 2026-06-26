@@ -19,17 +19,17 @@ import java.util.Objects;
 public final class Functional<T> implements Template<T> {
 
     private final @NotNull Class<T> type;
-    private final @NotNull Template<?> template;
     private final @NotNull Method target;
+    private final @Nullable Template<?> template;
 
     @SuppressWarnings("PatternVariableHidesField")
     public Functional(@NotNull Class<T> type,
-                      @NotNull Template<?> template) {
+                      @Nullable Template<?> template) {
         var option = Functional.findTarget(type);
         if (option instanceof Option.Some<Method>(var target)) {
-            this.type = Objects.requireNonNull(type);
-            this.template = Objects.requireNonNull(template);
-            this.target = target;
+            this.type     = Objects.requireNonNull(type);
+            this.target   = Objects.requireNonNull(target);
+            this.template = template;
             return;
         }
         throw new AssertionError();
@@ -62,7 +62,7 @@ public final class Functional<T> implements Template<T> {
     @SuppressWarnings("unchecked")
     public @NotNull Option<T> lower(@NotNull Value value) {
         if (value.canExecute()) {
-            var handler = new FunctionLike(this.target, this.template, value);
+            var handler = new FunctionLike(this.target, value, this.template);
             return Option.some((T) Proxy.newProxyInstance(
                     Tau.class.getClassLoader(),
                     new Class<?>[] { this.type },
@@ -84,8 +84,8 @@ public final class Functional<T> implements Template<T> {
             var type = value.getClass();
             if (Proxy.isProxyClass(type)) {
                 var handler = Proxy.getInvocationHandler(value);
-                if (handler instanceof FunctionLike impl)
-                    return Option.some(impl.delegate());
+                if (handler instanceof FunctionLike fn)
+                    return Option.some(fn.delegate());
                 return Option.none();
             }
             return Option.some(Value.asValue(value));
@@ -112,8 +112,10 @@ public final class Functional<T> implements Template<T> {
                         Description.delimiter(')')
                 ),
                 Description.delimiter(" => "),
-                this.template.describe(points)
-        ), Domain.TEMPLATE);
+                this.template != null
+                        ? this.template.describe(points)
+                        : Description.VOID
+        ), Domain.DESCRIBE);
     }
 
     @Override
