@@ -12,6 +12,7 @@ import dev.fusemc.tau.template.collection.Iterable;
 import dev.fusemc.tau.template.collection.tuple.*;
 import dev.fusemc.tau.template.dictionary.Dispatch;
 import dev.fusemc.tau.template.dictionary.HashLike;
+import dev.fusemc.tau.template.dictionary.Postpone;
 import dev.fusemc.tau.template.dictionary.record.*;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.dictionary.record.Record;
@@ -386,6 +387,23 @@ public interface Template<T> {
         Objects.requireNonNull(e);
         Objects.requireNonNull(constructor);
         return new PentaTuple<>(a, b, c, d, e, constructor);
+    }
+
+    /// Construct a **postponed** record template.
+    ///
+    /// ---
+    /// Constructs a record template from the given `Template` by assuming
+    /// it lowers to an object-like structure, and implementing the [Record#raiseWith(java.lang.Object, dev.fusemc.tau.element.Property)]
+    /// behavior through injecting the required [Property] into the lowered structure.
+    ///
+    /// ```java
+    /// Template.postpone(Template.map(Template.STRING, Template.INTEGER));
+    /// ```
+    ///
+    /// @since `0.2.5`
+    static <T> @NotNull Record<T> postpone(@NotNull Template<T> template) {
+        Objects.requireNonNull(template);
+        return new Postpone<>(template);
     }
 
     static <K, V> @NotNull Template<@NotNull Map<K, V>> map(@NotNull Template<K> key,
