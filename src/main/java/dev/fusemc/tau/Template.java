@@ -293,11 +293,21 @@ public interface Template<T> {
         return new Union<>(Arrays.copyOf(alternatives, alternatives.length));
     }
 
-    static @NotNull Template<@NotNull String> enumerate(@NotNull String @NotNull... alternatives) {
-        Objects.requireNonNull(alternatives);
-        return new Union<>(Arrays.stream(alternatives)
-                .map(Literal::new)
-                .toArray(Literal[]::new));
+    @SuppressWarnings("unchecked")
+    static <E extends Enum<E>> @NotNull Template<@NotNull E> enumerate(@NotNull Class<E> type,
+                                                                       @NotNull Function<E, String> f) {
+        Objects.requireNonNull(f);
+        return new Union<>(Arrays.stream(type.getEnumConstants())
+                .map(alternative -> {
+                    var literal = f.apply(alternative);
+                    return Template.literal(literal).flatMap(
+                            _ -> Option.some(alternative),
+                            alt -> Option.fromNullable(alt)
+                                    .filter(a -> a == alternative)
+                                    .map(_ -> literal)
+                    );
+                })
+                .toArray(Template[]::new));
     }
 
     static <T> @NotNull Template<@NotNull T> reference(@NotNull Class<T> type) {

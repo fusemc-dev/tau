@@ -6,7 +6,7 @@
 
     <groupId>dev.fusemc</groupId>
     <artifactId>tau</artifactId>
-    <version>0.2.5</version>
+    <version>0.2.7</version>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
