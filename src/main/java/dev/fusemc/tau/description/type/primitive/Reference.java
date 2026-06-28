@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public record Reference(@NotNull Class<?> type) implements Description {
+public record Reference(@NotNull String type) implements Description {
 
     private static final @NotNull Style STYLE = Charcoal.foreground(0x56A8F5);
 
@@ -20,11 +20,6 @@ public record Reference(@NotNull Class<?> type) implements Description {
 
     @Override
     public @NotNull String stringify(@Nullable Domain enclosing) {
-        var documented = this.type.getAnnotation(Documented.class);
-        if (documented != null) {
-            var type = documented.value();
-            return Reference.STYLE.wrap(type);
-        }
-        return Reference.STYLE.wrap(this.type.getSimpleName());
+        return Reference.STYLE.wrap(this.type);
     }
 }

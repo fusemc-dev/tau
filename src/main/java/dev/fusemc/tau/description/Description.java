@@ -1,5 +1,6 @@
 package dev.fusemc.tau.description;
 
+import dev.fusemc.tau.Documented;
 import dev.fusemc.tau.description.type.Attached;
 import dev.fusemc.tau.description.type.Join;
 import dev.fusemc.tau.description.type.Concat;
@@ -61,9 +62,18 @@ public interface Description {
         return new Numerical<>(number);
     }
 
-    static @NotNull Description reference(@NotNull Class<?> clazz) {
-        Objects.requireNonNull(clazz);
-        return new Reference(clazz);
+    static @NotNull Description reference(@NotNull String type) {
+        Objects.requireNonNull(type);
+        return new Reference(type);
+    }
+
+    static @NotNull Description reference(@NotNull Class<?> type) {
+        Objects.requireNonNull(type);
+        if (type.isAnnotationPresent(Documented.class)) {
+            var annotation = type.getAnnotation(Documented.class);
+            return new Reference(annotation.value());
+        }
+        return new Reference(type.getSimpleName());
     }
 
     static @NotNull Description concat(@NotNull Description @NotNull... descriptions) {

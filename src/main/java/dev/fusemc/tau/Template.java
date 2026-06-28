@@ -1,5 +1,6 @@
 package dev.fusemc.tau;
 
+import com.manchickas.optionated.Either;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Accessor;
@@ -466,6 +467,42 @@ public interface Template<T> {
         Objects.requireNonNull(e);
         Objects.requireNonNull(constructor);
         return new PentaRecord<>(a, b, c, d, e, constructor);
+    }
+
+    static <T, V> @NotNull Template<Either<T, V>> sequence(@NotNull Template<T> left,
+                                                           @NotNull Template<V> right) {
+        Objects.requireNonNull(left);
+        Objects.requireNonNull(right);
+        return new Template<>() {
+
+            @Override
+            public @NotNull Option<Either<T, V>> lower(@NotNull Value value) {
+                return left.lower(value).map(Either::<T, V>left)
+                        .or(() -> right.lower(value).map(Either::right));
+            }
+
+            @Override
+            public @NotNull Option<@NotNull Value> raise(@Nullable Either<T, V> value) {
+                if (value != null)
+                    return switch (value) {
+                        case Either.Left<T, V>(var wrapped) -> left.raise(wrapped);
+                        case Either.Right<T, V>(var wrapped) -> right.raise(wrapped);
+                    };
+                return Option.none();
+            }
+
+            @Override
+            public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+                return Description.attach(
+                        Description.join(
+                                Description.delimiter(" | "),
+                                left.describe(points.branch()),
+                                right.describe(points.branch())
+                        ),
+                        Domain.DESCRIBE
+                );
+            }
+        };
     }
 
     default <V> Element<V, T> element(@NotNull Accessor<V, T> accessor) {
