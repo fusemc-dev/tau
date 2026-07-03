@@ -29,8 +29,7 @@ public record Literal(@NotNull String literal) implements Description {
 
     @Override
     public @NotNull String stringify(@Nullable Domain enclosing) {
-        var buffer = Literal.STYLE.begin(new StringBuilder())
-                .append('"');
+        var buffer = Literal.STYLE.begin(new StringBuilder()).append('"');
         for (var i = 0; i < this.literal.length();) {
             var c = this.literal.codePointAt(i);
             i += Character.charCount(c);
@@ -42,7 +41,6 @@ public record Literal(@NotNull String literal) implements Description {
             }
             buffer.appendCodePoint(c);
         }
-        return Literal.STYLE.end(buffer.append('"'))
-                .toString();
+        return Literal.STYLE.end(buffer.append('"')).toString();
     }
 }

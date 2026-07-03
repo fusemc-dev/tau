@@ -57,7 +57,7 @@ public interface Description {
         return new Literal(literal);
     }
 
-    static <N extends Number> @NotNull Description number(@NotNull N number) {
+    static <N extends Number> @NotNull Description numeric(@NotNull N number) {
         Objects.requireNonNull(number);
         return new Numerical<>(number);
     }

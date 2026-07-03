@@ -3,7 +3,6 @@ package dev.fusemc.tau;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
-import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.graalvm.polyglot.proxy.Proxy;
@@ -14,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /// The Tau's entrypoint.
 ///
@@ -23,8 +23,17 @@ import java.util.*;
 /// @since `0.1.0`
 public final class Tau {
 
-    @ApiStatus.Internal
     private static final @Nullable Object UNDEFINED_SENTINEL = Tau.loadUndefined();
+    private static final @NotNull Pattern IDENTIFIER = Pattern.compile("^[a-zA-Z_$][a-zA-Z0-9_$]*$");
+    private static final @NotNull Description PROTOTYPE = Description.join(
+            Description.delimiter('['),
+            Description.join(
+                    Description.delimiter("object"),
+                    Description.delimiter(' '),
+                    Description.reference("Object")
+            ),
+            Description.delimiter(']')
+    );
     private static final int LENGTH_THRESHOLD = 5;
 
     private Tau() {
@@ -53,7 +62,7 @@ public final class Tau {
         throw new TypeException(Tau.describe(value), template.describe(Scope.hashScope()));
     }
 
-    /// Attempt to [Template#raise(java.lang.Object)]  the provided [T] using the provided
+    /// Attempt to [Template#raise(java.lang.Object)] the provided [T] using the provided
     /// [Template].
     ///
     /// ---
@@ -135,6 +144,381 @@ public final class Tau {
         return Tau.LENGTH_THRESHOLD;
     }
 
+    public static @NotNull Description inspect(@Nullable Object object,
+                                               @NotNull Scope<Object> visited) {
+        Objects.requireNonNull(visited);
+        if (object == null)
+            return Description.NULL;
+        if (object instanceof String string)
+            return Description.literal(string);
+        if (object instanceof Number number)
+            return Description.numeric(number);
+        if (object instanceof Boolean bool)
+            return bool ? Description.TRUE : Description.FALSE;
+        if (object instanceof byte[] bytes) {
+            var buffer = new Description[Math.min(bytes.length, 100)];
+            for (var i = 0; i < bytes.length; i++) {
+                if (i < 99 || bytes.length == 100) {
+                    buffer[i] = Description.numeric(bytes[i]);
+                    continue;
+                }
+                buffer[i] = Tau.nMore(bytes.length - i);
+                break;
+            }
+            return Description.join(Description.delimiter(", "), buffer);
+        }
+        if (object instanceof short[] shorts) {
+            var buffer = new Description[Math.min(shorts.length, 100)];
+            for (var i = 0; i < shorts.length; i++) {
+                if (i < 99 || shorts.length == 100) {
+                    buffer[i] = Description.numeric(shorts[i]);
+                    continue;
+                }
+                buffer[i] = Tau.nMore(shorts.length - i);
+                break;
+            }
+            return Description.join(Description.delimiter(", "), buffer);
+        }
+        if (object instanceof int[] ints) {
+            var buffer = new Description[Math.min(ints.length, 100)];
+            for (var i = 0; i < ints.length; i++) {
+                if (i < 99 || ints.length == 100) {
+                    buffer[i] = Description.numeric(ints[i]);
+                    continue;
+                }
+                buffer[i] = Tau.nMore(ints.length - i);
+                break;
+            }
+            return Description.join(Description.delimiter(", "), buffer);
+        }
+        if (object instanceof long[] longs) {
+            var buffer = new Description[Math.min(longs.length, 100)];
+            for (var i = 0; i < longs.length; i++) {
+                if (i < 99 || longs.length == 100) {
+                    buffer[i] = Description.numeric(longs[i]);
+                    continue;
+                }
+                buffer[i] = Tau.nMore(longs.length - i);
+                break;
+            }
+            return Description.join(Description.delimiter(", "), buffer);
+        }
+        if (object instanceof float[] floats) {
+            var buffer = new Description[Math.min(floats.length, 100)];
+            for (var i = 0; i < floats.length; i++) {
+                if (i < 99 || floats.length == 100) {
+                    buffer[i] = Description.numeric(floats[i]);
+                    continue;
+                }
+                buffer[i] = Tau.nMore(floats.length - i);
+                break;
+            }
+            return Description.join(Description.delimiter(", "), buffer);
+        }
+        if (object instanceof double[] doubles) {
+            var buffer = new Description[Math.min(doubles.length, 100)];
+            for (var i = 0; i < doubles.length; i++) {
+                if (i < 99 || doubles.length == 100) {
+                    buffer[i] = Description.numeric(doubles[i]);
+                    continue;
+                }
+                buffer[i] = Tau.nMore(doubles.length - i);
+                break;
+            }
+            return Description.join(Description.delimiter(", "), buffer);
+        }
+        if (object instanceof boolean[] booleans) {
+            var buffer = new Description[Math.min(booleans.length, 100)];
+            for (var i = 0; i < booleans.length; i++) {
+                if (i < 99 || booleans.length == 100) {
+                    buffer[i] = booleans[i] ? Description.TRUE : Description.FALSE;
+                    continue;
+                }
+                buffer[i] = Tau.nMore(booleans.length - i);
+                break;
+            }
+            return Description.join(Description.delimiter(", "), buffer);
+        }
+        if (object instanceof Object[] objects) {
+            if (visited.add(object)) {
+                var buffer = new Description[Math.min(objects.length, 100)];
+                for (var i = 0; i < objects.length; i++) {
+                    if (i < 99 || objects.length == 100) {
+                        buffer[i] = Tau.inspect(objects[i], visited.branch());
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(objects.length - i);
+                    break;
+                }
+                return Description.join(Description.delimiter(", "), buffer);
+            }
+            return Description.ELLIPSIS;
+        }
+        if (object instanceof Map<?, ?> map) {
+            if (visited.add(object)) {
+                var length = map.size();
+                var buffer = new Description[Math.min(length, 100)];
+                var iterator = map.entrySet().iterator();
+                for (var i = 0; iterator.hasNext(); i++) {
+                    var entry = iterator.next();
+                    var key   = entry.getKey();
+                    var value = entry.getValue();
+                    if (i < 99 || length == 100) {
+                        buffer[i] = Description.concat(
+                                Description.concat(
+                                        Description.delimiter('['),
+                                        Tau.inspect(key, visited.branch()),
+                                        Description.delimiter(']')
+                                ),
+                                Description.delimiter(": "),
+                                Tau.inspect(value, visited.branch())
+                        );
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(length - i);
+                    break;
+                }
+                return Description.concat(
+                        Description.delimiter('{'),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter('}')
+                );
+            }
+            return Description.ELLIPSIS;
+        }
+        if (object instanceof Inspectable inspectable)
+            return inspectable.inspect();
+        if (object instanceof Value value)
+            return Tau.inspect(value, visited);
+        if (object instanceof Proxy proxy)
+            return Tau.inspect(proxy, visited);
+        return Tau.PROTOTYPE;
+    }
+
+    public static @NotNull Description inspect(@NotNull Value value, @NotNull Scope<Object> visited) {
+        Objects.requireNonNull(value);
+        Objects.requireNonNull(visited);
+        if (Tau.isUndefined(value))
+            return Description.UNDEFINED;
+        if (Tau.isNull(value))
+            return Description.NULL;
+        if (value.isNumber()) {
+            if (value.fitsInByte())
+                return Description.numeric(value.asByte());
+            if (value.fitsInShort())
+                return Description.numeric(value.asShort());
+            if (value.fitsInInt())
+                return Description.numeric(value.asInt());
+            if (value.fitsInLong())
+                return Description.numeric(value.asLong());
+            if (value.fitsInBigInteger())
+                return Description.numeric(value.asBigInteger());
+            if (value.fitsInFloat())
+                return Description.numeric(value.asFloat());
+            return Description.numeric(value.asDouble());
+        }
+        if (value.isBoolean())
+            return value.asBoolean() ? Description.TRUE : Description.FALSE;
+        if (value.isString())
+            return Description.literal(value.asString());
+        if (value.hasArrayElements()) {
+            if (visited.add(value)) {
+                var length = (int) value.getArraySize();
+                var buffer = new Description[Math.min(length, 100)];
+                for (var i = 0; i < length; i++) {
+                    if (i < 99 || length == 100) {
+                        buffer[i] = Tau.inspect(value.getArrayElement(i), visited.branch());
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(length - i);
+                    break;
+                }
+                return Description.concat(
+                        Description.delimiter('['),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter(']')
+                );
+            }
+            return Description.ELLIPSIS;
+        }
+        if (value.hasHashEntries()) {
+            if (visited.add(value)) {
+                var length   = (int) value.getHashSize();
+                var buffer   = new Description[Math.min(length, 100)];
+                var iterator = Tau.lower(
+                        Template.iterator(Template.<Value[], Value, Value>tuple(
+                                Template.ANY.element(values -> values[0]),
+                                Template.ANY.element(values -> values[1]),
+                                (a, b) -> new Value[] {a, b}
+                        )),
+                        value.getHashEntriesIterator()
+                );
+                for (var i = 0; iterator.hasNext(); i++) {
+                    var entry = iterator.next();
+                    if (i < 99 || length == 100) {
+                        buffer[i] = Description.concat(
+                                Description.concat(
+                                        Description.delimiter('['),
+                                        Tau.inspect(entry[0], visited.branch()),
+                                        Description.delimiter(']')
+                                ),
+                                Description.delimiter(": "),
+                                Tau.inspect(entry[1], visited.branch())
+                        );
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(length - i);
+                    break;
+                }
+                return Description.concat(
+                        Description.delimiter('{'),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter('}')
+                );
+            }
+            return Description.ELLIPSIS;
+        }
+        if (value.hasMembers()) {
+            if (visited.add(value)) {
+                var keys     = value.getMemberKeys();
+                var iterator = keys.iterator();
+                var length   = keys.size();
+                var buffer   = new Description[Math.min(length, 100)];
+                for (var i = 0; iterator.hasNext(); i++) {
+                    var key = iterator.next();
+                    if (i < 99 || length == 100) {
+                        var matcher = Tau.IDENTIFIER.matcher(key);
+                        buffer[i] = Description.concat(
+                                matcher.matches()
+                                        ? Description.delimiter(key)
+                                        : Description.literal(key),
+                                Description.delimiter(": "),
+                                Tau.inspect(value.getMember(key), visited.branch())
+                        );
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(length - i);
+                    break;
+                }
+                return Description.concat(
+                        Description.delimiter('{'),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter('}')
+                );
+            }
+            return Description.ELLIPSIS;
+        }
+
+        if (value.isProxyObject())
+            return Tau.inspect((Proxy) value.asProxyObject(), visited);
+        if (value.isHostObject())
+            return Tau.inspect((Object) value.asHostObject(), visited);
+        return Tau.PROTOTYPE;
+    }
+
+    public static @NotNull Description inspect(@NotNull Proxy proxy, @NotNull Scope<Object> visited) {
+        if (proxy instanceof Inspectable inspectable)
+            return inspectable.inspect();
+        if (proxy instanceof ProxyArray array) {
+            if (visited.add(proxy)) {
+                var length = (int) array.getSize();
+                var buffer = new Description[Math.min(length, 100)];
+                for (var i = 0; i < length; i++) {
+                    if (i < 99 || length == 100) {
+                        buffer[i] = Tau.inspect(array.get(i), visited.branch());
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(length - i);
+                    break;
+                }
+                return Description.concat(
+                        Description.delimiter('['),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter(']')
+                );
+            }
+            return Description.ELLIPSIS;
+        }
+        if (proxy instanceof ProxyObject object) {
+            if (visited.add(proxy)) {
+                var keys = Tau.lower(
+                        Template.array(Template.STRING, String[]::new),
+                        Value.asValue(object.getMemberKeys())
+                );
+                var buffer = new Description[Math.min(keys.length, 100)];
+                for (var i = 0; i < keys.length; i++) {
+                    var key = keys[i];
+                    if (i < 99 || keys.length == 100) {
+                        var matcher = Tau.IDENTIFIER.matcher(key);
+                        buffer[i] = Description.concat(
+                                matcher.matches()
+                                        ? Description.delimiter(key)
+                                        : Description.literal(key),
+                                Description.delimiter(": "),
+                                Tau.inspect(object.getMember(key), visited.branch())
+                        );
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(keys.length - i);
+                    break;
+                }
+                return Description.concat(
+                        Description.delimiter('{'),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter('}')
+                );
+            }
+            return Description.ELLIPSIS;
+        }
+        if (proxy instanceof ProxyHashMap map) {
+            if (visited.add(proxy)) {
+                var length  = (int) map.getHashSize();
+                var buffer  = new Description[Math.min(length, 100)];
+                var entries = Tau.lower(
+                        Template.iterator(Template.<Value[], Value, Value>tuple(
+                                Template.ANY.element(tuple -> tuple[0]),
+                                Template.ANY.element(tuple -> tuple[1]),
+                                (a, b) -> new Value[] {a, b}
+                        )),
+                        Value.asValue(map.getHashEntriesIterator())
+                );
+                for (var i = 0; entries.hasNext(); i++) {
+                    var entry = entries.next();
+                    if (i < 99 || length == 100) {
+                        buffer[i] = Description.concat(
+                                Description.concat(
+                                        Description.delimiter('['),
+                                        Tau.inspect(entry[0], visited.branch()),
+                                        Description.delimiter(']')
+                                ),
+                                Description.delimiter(": "),
+                                Tau.inspect(entry[1], visited.branch())
+                        );
+                        continue;
+                    }
+                    buffer[i] = Tau.nMore(length - i);
+                    break;
+                }
+                return Description.concat(
+                        Description.delimiter('{'),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter('}')
+                );
+            }
+            return Description.ELLIPSIS;
+        }
+        return Tau.PROTOTYPE;
+    }
+
+    @ApiStatus.Internal
+    private static @NotNull Description nMore(int n) {
+        return Description.concat(
+                Description.delimiter("..."),
+                Description.delimiter(Integer.toString(n)),
+                Description.delimiter(" more")
+        );
+    }
+
     /// Describe the provided [Object].
     ///
     /// ---
@@ -166,7 +550,7 @@ public final class Tau {
                 return Tau.describe(type);
             if (o instanceof Number num) {
                 if (constant)
-                    return Description.attach(Description.number(num), Domain.HOST);
+                    return Description.attach(Description.numeric(num), Domain.HOST);
                 return Description.attach(Description.NUMBER, Domain.HOST);
             }
             if (o instanceof String literal) {
@@ -429,19 +813,19 @@ public final class Tau {
         if (value.isNumber()) {
             if (constant) {
                 if (value.fitsInByte())
-                    return Description.attach(Description.number(value.asByte()), Domain.POLYGLOT);
+                    return Description.attach(Description.numeric(value.asByte()), Domain.POLYGLOT);
                 if (value.fitsInShort())
-                    return Description.attach(Description.number(value.asShort()), Domain.POLYGLOT);
+                    return Description.attach(Description.numeric(value.asShort()), Domain.POLYGLOT);
                 if (value.fitsInInt())
-                    return Description.attach(Description.number(value.asInt()), Domain.POLYGLOT);
+                    return Description.attach(Description.numeric(value.asInt()), Domain.POLYGLOT);
                 if (value.fitsInLong())
-                    return Description.attach(Description.number(value.asLong()), Domain.POLYGLOT);
+                    return Description.attach(Description.numeric(value.asLong()), Domain.POLYGLOT);
                 if (value.fitsInBigInteger())
-                    return Description.attach(Description.number(value.asBigInteger()), Domain.POLYGLOT);
+                    return Description.attach(Description.numeric(value.asBigInteger()), Domain.POLYGLOT);
                 if (value.fitsInFloat())
-                    return Description.attach(Description.number(value.asFloat()), Domain.POLYGLOT);
+                    return Description.attach(Description.numeric(value.asFloat()), Domain.POLYGLOT);
                 if (value.fitsInDouble())
-                    return Description.attach(Description.number(value.asDouble()), Domain.POLYGLOT);
+                    return Description.attach(Description.numeric(value.asDouble()), Domain.POLYGLOT);
                 return Description.attach(Description.NUMBER, Domain.POLYGLOT);
             }
             return Description.attach(Description.NUMBER, Domain.POLYGLOT);
@@ -567,15 +951,17 @@ public final class Tau {
         if (value.hasMembers()) {
             if (visited.add(value)) {
                 var keys = value.getMemberKeys();
+                var iterator = keys.iterator();
                 var buffer = new Description[keys.size()];
-                var i = 0;
-                for (var key : keys) {
-                    var member = value.getMember(key);
-                    var description = Tau.describe(member, visited.branch(), constant);
-                    buffer[i++] = Description.concat(
-                            Description.literal(key),
+                for (var i = 0; iterator.hasNext(); i++) {
+                    var key = iterator.next();
+                    var matcher = Tau.IDENTIFIER.matcher(key);
+                    buffer[i] = Description.concat(
+                            matcher.matches()
+                                    ? Description.delimiter(key)
+                                    : Description.literal(key),
                             Description.delimiter(": "),
-                            description
+                            Tau.describe(value.getMember(key), visited.branch(), constant)
                     );
                 }
                 return Description.attach(Description.concat(
@@ -664,12 +1050,14 @@ public final class Tau {
                 );
                 var buffer = new Description[keys.length];
                 for (var i = 0; i < keys.length; i++) {
-                    var member = object.getMember(keys[i]);
-                    var description = Tau.describe(member, visited.branch(), constant);
+                    var key = keys[i];
+                    var matcher = Tau.IDENTIFIER.matcher(key);
                     buffer[i] = Description.concat(
-                            Description.literal(keys[i]),
+                            matcher.matches()
+                                ? Description.delimiter(key)
+                                : Description.literal(key),
                             Description.delimiter(": "),
-                            description
+                            Tau.describe(object.getMember(key), visited.branch(), constant)
                     );
                 }
                 return Description.attach(Description.concat(
