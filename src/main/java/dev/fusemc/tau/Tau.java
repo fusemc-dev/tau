@@ -3,6 +3,7 @@ package dev.fusemc.tau;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
+import dev.fusemc.tau.proxy.FunctionLike;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.graalvm.polyglot.proxy.Proxy;
@@ -25,12 +26,21 @@ public final class Tau {
 
     private static final @Nullable Object UNDEFINED_SENTINEL = Tau.loadUndefined();
     private static final @NotNull Pattern IDENTIFIER = Pattern.compile("^[a-zA-Z_$][a-zA-Z0-9_$]*$");
-    private static final @NotNull Description PROTOTYPE = Description.join(
+    private static final @NotNull Description PROTOTYPE = Description.concat(
             Description.delimiter('['),
-            Description.join(
+            Description.concat(
                     Description.delimiter("object"),
                     Description.delimiter(' '),
                     Description.reference("Object")
+            ),
+            Description.delimiter(']')
+    );
+    private static final @NotNull Description FUNCTION = Description.concat(
+            Description.delimiter('['),
+            Description.concat(
+                    Description.delimiter("object"),
+                    Description.delimiter(' '),
+                    Description.reference("Function")
             ),
             Description.delimiter(']')
     );
@@ -408,7 +418,8 @@ public final class Tau {
             }
             return Description.ELLIPSIS;
         }
-
+        if (value.canExecute())
+            return Tau.FUNCTION;
         if (value.isProxyObject())
             return Tau.inspect((Proxy) value.asProxyObject(), visited);
         if (value.isHostObject())
