@@ -1,9 +1,11 @@
 package dev.fusemc.tau;
 
 import com.manchickas.optionated.Option;
+import com.oracle.truffle.js.runtime.builtins.JSRegExpObject;
+import com.oracle.truffle.regex.RegexObject;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
-import dev.fusemc.tau.proxy.FunctionLike;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.graalvm.polyglot.proxy.Proxy;
@@ -11,6 +13,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
@@ -25,6 +29,7 @@ import java.util.regex.Pattern;
 public final class Tau {
 
     private static final @Nullable Object UNDEFINED_SENTINEL = Tau.loadUndefined();
+    private static final @NotNull VarHandle RECEIVER = Tau.receiver();
     private static final @NotNull Pattern IDENTIFIER = Pattern.compile("^[a-zA-Z_$][a-zA-Z0-9_$]*$");
     private static final @NotNull Description PROTOTYPE = Description.concat(
             Description.delimiter('['),
@@ -48,6 +53,47 @@ public final class Tau {
 
     private Tau() {
         throw new UnsupportedOperationException();
+    }
+
+    /// Attempt to lower the provided [Value] as a **RegExp** [Pattern].
+    ///
+    /// ---
+    ///
+    /// Due to GraalVM not having a supported way of working with regular expressions from Java,
+    /// it is unreasonably difficult to raise a `String` to a [JSRegExpObject]. It is, however,
+    /// relatively straightforward to lower a RegExp [Value] to a respective [Pattern]. This method
+    /// thus acts as a replacement for a proper RegExp-[Template].
+    ///
+    /// If the provided [Value] is not a RegExp, a [TypeException] will be thrown in the form of:
+    ///
+    /// ```
+    /// Type '...' is not assignable to type 'RegExp'.
+    /// ```
+    ///
+    /// @since `0.2.9`
+    @SuppressWarnings("MagicConstant")
+    public static @NotNull Pattern lowerPattern(@NotNull Value value) {
+        Objects.requireNonNull(value);
+        var receiver = Tau.RECEIVER.get(value);
+        if (receiver instanceof JSRegExpObject jsr) {
+            var compiled = jsr.getCompiledRegex();
+            if (compiled instanceof RegexObject regex) {
+                var source = regex.getSource();
+                var flags  = source.getFlags()
+                        .codePoints()
+                        .map(flag -> switch (flag) {
+                            case 'm' -> Pattern.MULTILINE;
+                            case 'i' -> Pattern.CASE_INSENSITIVE;
+                            case 'u' -> Pattern.UNICODE_CASE | Pattern.UNICODE_CHARACTER_CLASS;
+                            case 's' -> Pattern.DOTALL;
+                            default -> 0;
+                        })
+                        .reduce(0, (a, b) -> a | b);
+                return Pattern.compile(source.getPattern(), flags);
+            }
+            throw new TypeException(Tau.describe(value), Description.reference("RegExp"));
+        }
+        throw new TypeException(Tau.describe(value), Description.reference("RegExp"));
     }
     
     /// Attempts to [Template#lower(org.graalvm.polyglot.Value)] the provided [Value] using the provided
@@ -331,6 +377,10 @@ public final class Tau {
             return value.asBoolean() ? Description.TRUE : Description.FALSE;
         if (value.isString())
             return Description.literal(value.asString());
+        if (value.isProxyObject())
+            return Tau.inspect((Proxy) value.asProxyObject(), visited);
+        if (value.isHostObject())
+            return Tau.inspect((Object) value.asHostObject(), visited);
         if (value.hasArrayElements()) {
             if (visited.add(value)) {
                 var length = (int) value.getArraySize();
@@ -420,10 +470,6 @@ public final class Tau {
         }
         if (value.canExecute())
             return Tau.FUNCTION;
-        if (value.isProxyObject())
-            return Tau.inspect((Proxy) value.asProxyObject(), visited);
-        if (value.isHostObject())
-            return Tau.inspect((Object) value.asHostObject(), visited);
         return Tau.PROTOTYPE;
     }
 
@@ -518,6 +564,8 @@ public final class Tau {
             }
             return Description.ELLIPSIS;
         }
+        if (proxy instanceof ProxyExecutable)
+            return Tau.FUNCTION;
         return Tau.PROTOTYPE;
     }
 
@@ -821,6 +869,10 @@ public final class Tau {
                                                  boolean constant) {
         Objects.requireNonNull(value);
         Objects.requireNonNull(visited);
+        if (Tau.isUndefined(value))
+            return Description.attach(Description.UNDEFINED, Domain.POLYGLOT);
+        if (Tau.isNull(value))
+            return Description.attach(Description.NULL, Domain.POLYGLOT);
         if (value.isNumber()) {
             if (constant) {
                 if (value.fitsInByte())
@@ -851,10 +903,10 @@ public final class Tau {
                 return Description.attach(value.asBoolean() ? Description.TRUE : Description.FALSE, Domain.POLYGLOT);
             return Description.attach(Description.BOOLEAN, Domain.POLYGLOT);
         }
-        if (Tau.isUndefined(value))
-            return Description.attach(Description.UNDEFINED, Domain.POLYGLOT);
-        if (Tau.isNull(value))
-            return Description.attach(Description.NULL, Domain.POLYGLOT);
+        if (value.isHostObject())
+            return Tau.describe((Object) value.asHostObject(), visited, constant);
+        if (value.isProxyObject())
+            return Tau.describe((Proxy) value.asProxyObject(), visited, constant);
         if (value.hasArrayElements()) {
             if (visited.add(value)) {
                 var length = (int) value.getArraySize();
@@ -986,10 +1038,6 @@ public final class Tau {
             }
             return Description.attach(Description.ELLIPSIS, Domain.POLYGLOT);
         }
-        if (value.isHostObject())
-            return Tau.describe((Object) value.asHostObject(), visited, constant);
-        if (value.isProxyObject())
-            return Tau.describe((Proxy) value.asProxyObject(), visited, constant);
         return Description.attach(Description.UNKNOWN, Domain.POLYGLOT);
     }
 
@@ -1239,6 +1287,15 @@ public final class Tau {
             return null;
         } catch (ReflectiveOperationException e) {
             return null;
+        }
+    }
+
+    private static @NotNull VarHandle receiver() {
+        try {
+            var lookup = MethodHandles.privateLookupIn(Value.class, MethodHandles.lookup());
+            return lookup.findVarHandle(Value.class, "receiver", Object.class);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
         }
     }
 }
