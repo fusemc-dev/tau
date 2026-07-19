@@ -221,7 +221,11 @@ public final class Tau {
                 buffer[i] = Tau.nMore(bytes.length - i);
                 break;
             }
-            return Description.join(Description.delimiter(", "), buffer);
+            return Description.concat(
+                    Description.delimiter("[ "),
+                    Description.join(Description.delimiter(", "), buffer),
+                    Description.delimiter(" ]")
+            );
         }
         if (object instanceof short[] shorts) {
             var buffer = new Description[Math.min(shorts.length, 100)];
@@ -233,7 +237,11 @@ public final class Tau {
                 buffer[i] = Tau.nMore(shorts.length - i);
                 break;
             }
-            return Description.join(Description.delimiter(", "), buffer);
+            return Description.concat(
+                    Description.delimiter("[ "),
+                    Description.join(Description.delimiter(", "), buffer),
+                    Description.delimiter(" ]")
+            );
         }
         if (object instanceof int[] ints) {
             var buffer = new Description[Math.min(ints.length, 100)];
@@ -245,7 +253,11 @@ public final class Tau {
                 buffer[i] = Tau.nMore(ints.length - i);
                 break;
             }
-            return Description.join(Description.delimiter(", "), buffer);
+            return Description.concat(
+                    Description.delimiter("[ "),
+                    Description.join(Description.delimiter(", "), buffer),
+                    Description.delimiter(" ]")
+            );
         }
         if (object instanceof long[] longs) {
             var buffer = new Description[Math.min(longs.length, 100)];
@@ -257,7 +269,11 @@ public final class Tau {
                 buffer[i] = Tau.nMore(longs.length - i);
                 break;
             }
-            return Description.join(Description.delimiter(", "), buffer);
+            return Description.concat(
+                    Description.delimiter("[ "),
+                    Description.join(Description.delimiter(", "), buffer),
+                    Description.delimiter(" ]")
+            );
         }
         if (object instanceof float[] floats) {
             var buffer = new Description[Math.min(floats.length, 100)];
@@ -269,7 +285,11 @@ public final class Tau {
                 buffer[i] = Tau.nMore(floats.length - i);
                 break;
             }
-            return Description.join(Description.delimiter(", "), buffer);
+            return Description.concat(
+                    Description.delimiter("[ "),
+                    Description.join(Description.delimiter(", "), buffer),
+                    Description.delimiter(" ]")
+            );
         }
         if (object instanceof double[] doubles) {
             var buffer = new Description[Math.min(doubles.length, 100)];
@@ -281,7 +301,11 @@ public final class Tau {
                 buffer[i] = Tau.nMore(doubles.length - i);
                 break;
             }
-            return Description.join(Description.delimiter(", "), buffer);
+            return Description.concat(
+                    Description.delimiter("[ "),
+                    Description.join(Description.delimiter(", "), buffer),
+                    Description.delimiter(" ]")
+            );
         }
         if (object instanceof boolean[] booleans) {
             var buffer = new Description[Math.min(booleans.length, 100)];
@@ -293,7 +317,11 @@ public final class Tau {
                 buffer[i] = Tau.nMore(booleans.length - i);
                 break;
             }
-            return Description.join(Description.delimiter(", "), buffer);
+            return Description.concat(
+                    Description.delimiter("[ "),
+                    Description.join(Description.delimiter(", "), buffer),
+                    Description.delimiter(" ]")
+            );
         }
         if (object instanceof Object[] objects) {
             if (visited.add(object)) {
@@ -306,7 +334,11 @@ public final class Tau {
                     buffer[i] = Tau.nMore(objects.length - i);
                     break;
                 }
-                return Description.join(Description.delimiter(", "), buffer);
+                return Description.concat(
+                        Description.delimiter("[ "),
+                        Description.join(Description.delimiter(", "), buffer),
+                        Description.delimiter(" ]")
+                );
             }
             return Description.ELLIPSIS;
         }
@@ -335,9 +367,9 @@ public final class Tau {
                     break;
                 }
                 return Description.concat(
-                        Description.delimiter('{'),
+                        Description.delimiter("{ "),
                         Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter('}')
+                        Description.delimiter(" }")
                 );
             }
             return Description.ELLIPSIS;
@@ -394,9 +426,9 @@ public final class Tau {
                     break;
                 }
                 return Description.concat(
-                        Description.delimiter('['),
+                        Description.delimiter("[ "),
                         Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter(']')
+                        Description.delimiter(" ]")
                 );
             }
             return Description.ELLIPSIS;
@@ -431,9 +463,9 @@ public final class Tau {
                     break;
                 }
                 return Description.concat(
-                        Description.delimiter('{'),
+                        Description.delimiter("{ "),
                         Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter('}')
+                        Description.delimiter(" }")
                 );
             }
             return Description.ELLIPSIS;
@@ -461,9 +493,9 @@ public final class Tau {
                     break;
                 }
                 return Description.concat(
-                        Description.delimiter('{'),
+                        Description.delimiter("{ "),
                         Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter('}')
+                        Description.delimiter(" }")
                 );
             }
             return Description.ELLIPSIS;
@@ -489,9 +521,9 @@ public final class Tau {
                     break;
                 }
                 return Description.concat(
-                        Description.delimiter('['),
+                        Description.delimiter("[ "),
                         Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter(']')
+                        Description.delimiter(" ]")
                 );
             }
             return Description.ELLIPSIS;
@@ -520,9 +552,9 @@ public final class Tau {
                     break;
                 }
                 return Description.concat(
-                        Description.delimiter('{'),
+                        Description.delimiter("{ "),
                         Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter('}')
+                        Description.delimiter(" }")
                 );
             }
             return Description.ELLIPSIS;
@@ -557,9 +589,9 @@ public final class Tau {
                     break;
                 }
                 return Description.concat(
-                        Description.delimiter('{'),
+                        Description.delimiter("{ "),
                         Description.join(Description.delimiter(", "), buffer),
-                        Description.delimiter('}')
+                        Description.delimiter(" }")
                 );
             }
             return Description.ELLIPSIS;
