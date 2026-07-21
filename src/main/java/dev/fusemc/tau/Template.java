@@ -1,6 +1,7 @@
 package dev.fusemc.tau;
 
 import com.manchickas.optionated.Either;
+import com.oracle.truffle.js.nodes.access.LocalVarIncNode;
 import dev.fusemc.tau.description.Description;
 import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Accessor;
@@ -18,6 +19,7 @@ import dev.fusemc.tau.template.dictionary.record.*;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.dictionary.record.Record;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -216,6 +218,44 @@ public interface Template<T> {
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
             return Description.attach(Description.BIG_INTEGER, Domain.DESCRIBE);
+        }
+    };
+    @NotNull Template<@NotNull ProxyExecutable> FUNCTION = new Template<>() {
+
+        @Override
+        public @NotNull Option<ProxyExecutable> lower(@NotNull Value value) {
+            if (value.canExecute())
+                return Option.some(value::execute);
+            if (value.isProxyObject()) {
+                var proxy = value.asProxyObject();
+                if (proxy instanceof ProxyExecutable function)
+                    return Option.some(function);
+                return Option.none();
+            }
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Option<@NotNull Value> raise(@Nullable ProxyExecutable value) {
+            if (value != null)
+                return Option.some(Value.asValue(value));
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.attach(Description.concat(
+                    Description.concat(
+                            Description.delimiter('('),
+                            Description.concat(
+                                    Description.ELLIPSIS,
+                                    Description.ANY
+                            ),
+                            Description.delimiter(')')
+                    ),
+                    Description.delimiter(" => "),
+                    Description.ANY
+            ), Domain.DESCRIBE);
         }
     };
     @NotNull Template<@Nullable Void> UNDEFINED = new Template<>() {
