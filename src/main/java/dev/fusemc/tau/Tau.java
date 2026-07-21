@@ -113,7 +113,7 @@ public final class Tau {
         Objects.requireNonNull(template);
         Objects.requireNonNull(value);
         var option = template.lower(value);
-        if (option instanceof Option.Some<T>(var result))
+        if (option instanceof Option.Some(var result))
             return result;
         throw new TypeException(Tau.describe(value), template.describe(Scope.hashScope()));
     }
@@ -135,9 +135,40 @@ public final class Tau {
     public static <T> Value raise(@NotNull Template<T> template, @Nullable T value) {
         Objects.requireNonNull(template);
         var option = template.raise(value);
-        if (option instanceof Option.Some<Value>(var result))
+        if (option instanceof Option.Some(var result))
             return result;
         throw new TypeException(Tau.describe(value), template.describe(Scope.hashScope()));
+    }
+
+    /// Create a **constructor function** for the given [Template].
+    ///
+    /// ---
+    ///
+    /// A **constructor function** is a reusable [ProxyExecutable] that, when called with
+    /// a single argument, uses the provided [Template] to lower it.
+    ///
+    /// ```java
+    /// try (var ctx = Context.create("js")) {
+    ///     var bindings = ctx.getBindings("js");
+    ///     bindings.put("person", Tau.constructor(Person.TEMPLATE));
+    ///     ctx.eval("js", """
+    ///         console.log(person({ name: "Marie" }))
+    ///     """);
+    /// }
+    /// ```
+    ///
+    /// @since 0.2.10
+    public static @NotNull ProxyExecutable constructor(@NotNull Template<?> template) {
+        Objects.requireNonNull(template);
+        return (args) -> {
+            if (args.length == 1) {
+                var option = template.lower(args[0]);
+                if (option instanceof Option.Some(var result))
+                    return result;
+                throw new TypeException(Tau.describe(args[0]), template.describe(Scope.hashScope()));
+            }
+            throw new UnsupportedOperationException();
+        };
     }
 
     /// Return an [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type) [Value].
