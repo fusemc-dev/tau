@@ -61,12 +61,60 @@ public final class Functional<T> implements Template<T> {
     @SuppressWarnings("unchecked")
     public @NotNull Option<T> lower(@NotNull Value value) {
         if (value.canExecute()) {
-            var handler = new FunctionLike(this.target, value, this.template);
+            var handler = new FunctionLike(this.target, new Function<>() {
+
+                @Override
+                public @Nullable Object apply(@Nullable Object @NotNull[] args) {
+                    return value.execute(args);
+                }
+
+                @Override
+                public int hashCode() {
+                    return value.hashCode();
+                }
+
+                @Override
+                public @NotNull String toString() {
+                    return value.toString();
+                }
+            }, this.template);
             return Option.some((T) Proxy.newProxyInstance(
                     Tau.class.getClassLoader(),
                     new Class<?>[] { this.type },
                     handler
             ));
+        }
+        if (value.isProxyObject()) {
+            var proxy = value.asProxyObject();
+            if (proxy instanceof ProxyExecutable executable) {
+                var handler = new FunctionLike(this.target, new Function<>() {
+
+                    @Override
+                    public @Nullable Object apply(@Nullable Object @NotNull[] args) {
+                        return executable.execute(Arrays.stream(args)
+                                .map(Value::asValue)
+                                .toArray(Value[]::new));
+                    }
+
+                    @Override
+                    public int hashCode() {
+                        return executable.hashCode();
+                    }
+
+                    @Override
+                    public @NotNull String toString() {
+                        return executable.toString();
+                    }
+                }, this.template);
+                return Option.some((T) Proxy.newProxyInstance(
+                        Tau.class.getClassLoader(),
+                        new Class<?>[] { this.type },
+                        handler
+                ));
+            }
+            if (this.type.isInstance(host))
+                return Option.some(this.type.cast(host));
+            return Option.none();
         }
         if (value.isHostObject()) {
             var host = value.asHostObject();

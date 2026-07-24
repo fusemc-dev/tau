@@ -31,11 +31,11 @@ public final class FunctionLike implements InvocationHandler {
     private static final Method EQUALS;
 
     private final @NotNull Method target;
-    private final @NotNull Value delegate;
+    private final @NotNull Function<Object[], Object> delegate;
     private final @Nullable Template<?> template;
 
     public FunctionLike(@NotNull Method target,
-                        @NotNull Value delegate,
+                        @NotNull Function<Object[], Object> delegate,
                         @Nullable Template<?> template) {
         this.target   = Objects.requireNonNull(target);
         this.delegate = Objects.requireNonNull(delegate);

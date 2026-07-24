@@ -242,7 +242,13 @@ public final class Tau {
         return Tau.LENGTH_THRESHOLD;
     }
 
-    public static @NotNull Description inspect(@Nullable Object object,
+    public static @NotNull Description inspect(@Nullable Object object) {
+        Objects.requireNonNull(object);
+        return Tau.inspect(object, Scope.hashScope());
+    }
+
+    @ApiStatus.Internal
+    private static @NotNull Description inspect(@Nullable Object object,
                                                @NotNull Scope<Object> visited) {
         Objects.requireNonNull(visited);
         if (object == null)
@@ -425,7 +431,13 @@ public final class Tau {
         return Tau.PROTOTYPE;
     }
 
-    public static @NotNull Description inspect(@NotNull Value value, @NotNull Scope<Object> visited) {
+    public static @NotNull Description inspect(@NotNull Value value) {
+        Objects.requireNonNull(value);
+        return Tau.inspect(value, Scope.hashScope());
+    }
+
+    @ApiStatus.Internal
+    private static @NotNull Description inspect(@NotNull Value value, @NotNull Scope<Object> visited) {
         Objects.requireNonNull(value);
         Objects.requireNonNull(visited);
         if (Tau.isUndefined(value))
@@ -547,7 +559,13 @@ public final class Tau {
         return Tau.PROTOTYPE;
     }
 
-    public static @NotNull Description inspect(@NotNull Proxy proxy, @NotNull Scope<Object> visited) {
+    public static @NotNull Description inspect(@NotNull Proxy proxy) {
+        Objects.requireNonNull(proxy);
+        return Tau.inspect(proxy, Scope.hashScope());
+    }
+
+    @ApiStatus.Internal
+    private static @NotNull Description inspect(@NotNull Proxy proxy, @NotNull Scope<Object> visited) {
         if (proxy instanceof Inspectable inspectable)
             return inspectable.inspect();
         if (proxy instanceof ProxyArray array) {
@@ -655,9 +673,8 @@ public final class Tau {
     /// Describe the provided [Object].
     ///
     /// ---
-    /// Produces a [Description] based on the given `Object` by inspecting its
-    /// runtime value. Unless redirected to an overload, the produced
-    /// `Description` will be annotated as having come from [Domain#HOST].
+    /// Produces a [Description] based on the **type** the given `Object` by inspecting its
+    /// runtime value.
     ///
     /// If the provided `Object` is a [Value], a [Proxy] or a [Type], the more appropriate
     /// overload will be taken instead.
@@ -920,14 +937,13 @@ public final class Tau {
         return Description.NULL;
     }
 
-    /// Describes the provided [Value].
+    /// Describe the provided [Value].
     ///
-    /// Produces a [Description] based on the given `Value`.
-    /// The produced `Description` will be annotated as having come from [Domain#POLYGLOT].
+    /// ---
+    /// Produces a [Description] based on the **type** of the given `Value`.
     ///
     /// If the provided `Value` wraps a **Host Object**, the [#describe(Object)] overload
-    /// will be taken to describe it. The description will, however, still be
-    /// annotated as [Domain#POLYGLOT].
+    /// will be taken to describe it instead.
     ///
     /// @since 0.1.0
     /// @see #describe(Proxy)
@@ -1115,10 +1131,10 @@ public final class Tau {
         return Description.UNKNOWN;
     }
 
-    /// Describes the provided [Proxy].
+    /// Describe the provided [Proxy].
     ///
-    /// Produces a [Description] based on the given `Proxy`.
-    /// The produced `Description` will be annotated as having come from [Domain#PROXY].
+    /// ---
+    /// Produces a [Description] based on the **type** of the given `Proxy`.
     ///
     /// @since 0.1.0
     /// @see #describe(Value)
@@ -1267,8 +1283,9 @@ public final class Tau {
         return Description.reference(proxy.getClass());
     }
 
-    /// Describes the provided reflected [Type].
+    /// Describe the provided reflected [Type].
     ///
+    /// ---
     /// Produces a [Description] based on the given `Type`.
     /// The produced description will be annotated as having come from [Domain#REFLECTION].
     ///
