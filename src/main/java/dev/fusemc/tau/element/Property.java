@@ -1,6 +1,6 @@
 package dev.fusemc.tau.element;
 
-import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
@@ -16,12 +16,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-/// Represents a single property of a record.
+/// A single property of a record.
 ///
+/// ---
 /// A `Property` associates a field `name` of a dictionary-like
-/// with a property of type `A` on type `T`. A `Property` may either
+/// with a property of type `A` on some type `T`. A `Property` may either
 /// be [Required] or [Optional].
 ///
+/// @since 0.1.0
 /// @see Element
 /// @see ObjectLike
 public sealed abstract class Property<T, A> {
@@ -101,11 +103,13 @@ public sealed abstract class Property<T, A> {
     @ApiStatus.Internal
     public abstract @NotNull Description description(@NotNull Scope<Mu<?>> points);
 
-    /// Represents a required property.
+    /// A required property.
     ///
+    /// ---
     /// On [#lower(org.graalvm.polyglot.Value)], a **required** property requires its
     /// associated field to be present in the dictionary-like for the parsing to succeed.
     ///
+    /// @since 0.1.0
     /// @see Optional
     public static final class Required<T, A> extends Property<T, A> {
 
@@ -148,12 +152,14 @@ public sealed abstract class Property<T, A> {
         }
     }
 
-    /// Represents an optional property.
+    /// An optional property.
     ///
+    /// ---
     /// On [#lower(org.graalvm.polyglot.Value)], an **optional** property uses
     /// the provided [Supplier] to supply a fallback `A` if the associated field
     /// is missing in the dictionary-like.
     ///
+    /// @since 0.1.0
     /// @see Required
     public static final class Optional<T, A> extends Property<T, A> {
 

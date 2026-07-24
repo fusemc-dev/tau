@@ -21,7 +21,7 @@ import java.util.stream.Collector;
 ///
 /// An `ObjectLike` is initiated with a [Builder].
 ///
-/// @since `0.1.0`
+/// @since 0.1.0
 /// @see Builder
 public final class ObjectLike implements ProxyObject {
 
@@ -38,7 +38,7 @@ public final class ObjectLike implements ProxyObject {
     ///
     /// Initializes a `Builder` instance with the default capacity of 16.
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     public static @NotNull Builder builder() {
         return new Builder(16);
     }
@@ -47,7 +47,7 @@ public final class ObjectLike implements ProxyObject {
     ///
     /// Initializes a `Builder` instance with the provided initial `capacity`.
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     public static @NotNull Builder builder(int capacity) {
         return new Builder(capacity);
     }
@@ -77,7 +77,7 @@ public final class ObjectLike implements ProxyObject {
     /// If no mapping for the given `key` was provided when building the `ObjectLike`,
     /// [Tau#undefined()] is returned instead.
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see Tau#undefined()
     /// @see #hasMember(String)
     @Override
@@ -101,7 +101,7 @@ public final class ObjectLike implements ProxyObject {
     /// The returned [ProxyArray] is an **immutable** view of the keys in the `ObjectLike`,
     /// in the order they were inserted when building it.
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     @Override
     public @NotNull ProxyArray getMemberKeys() {
         return new ProxyArray() {
@@ -127,7 +127,7 @@ public final class ObjectLike implements ProxyObject {
 
     /// Determines whether the `ObjectLike` contains a mapping associated with the provided `key`.
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see #getMember(String)
     @Override
     public boolean hasMember(@NotNull String key) {
@@ -150,7 +150,7 @@ public final class ObjectLike implements ProxyObject {
     /// Since `Dictionaries` are immutable after their construction,
     /// this method always throws an [UnsupportedOperationException].
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     @Override
     public void putMember(@NotNull String key, @NotNull Value value) {
         Objects.requireNonNull(key);
@@ -164,7 +164,7 @@ public final class ObjectLike implements ProxyObject {
     /// the string representation is always `[object Object']`, similar
     /// to the standard `Object.toString()` method.
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     @Override
     public String toString() {
         return "[object Object']";
@@ -176,7 +176,7 @@ public final class ObjectLike implements ProxyObject {
     /// The order in which the entries were `appended` is preserved
     /// when `building` the `ObjectLike`.
     /// 
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see ObjectLike#builder() 
     /// @see ObjectLike#builder(int)
     public static class Builder {
@@ -205,7 +205,7 @@ public final class ObjectLike implements ProxyObject {
         /// Associates the given `key` with the provided `value` in the `Builder`. If the `key`
         /// was already present, an [IllegalArgumentException] is thrown.
         ///
-        /// @since `0.1.0`
+        /// @since 0.1.0
         /// @see #build()
         @Contract("_, _ -> this")
         public @NotNull Builder append(@NotNull String key, @NotNull Value value) {
@@ -245,7 +245,7 @@ public final class ObjectLike implements ProxyObject {
         ///
         /// The `build()` method may be called multiple times on the same `Builder`.
         ///
-        /// @since `0.1.0`
+        /// @since 0.1.0
         /// @see #append(String, Value)
         public @NotNull ObjectLike build() {
             return new ObjectLike(

@@ -4,8 +4,7 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Domain;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.proxy.MapLike;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
@@ -162,19 +161,18 @@ public record HashLike<K, V>(@NotNull Template<K> key,
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(
+        return Description.concat(
+                Description.delimiter('{'),
                 Description.concat(
-                        Description.delimiter('{'),
                         Description.concat(
                                 Description.delimiter('['),
                                 this.key.describe(points),
                                 Description.delimiter(']')
                         ),
                         Description.delimiter(": "),
-                        this.value.describe(points),
-                        Description.delimiter('}')
+                        this.value.describe(points)
                 ),
-                Domain.DESCRIBE
+                Description.delimiter('}')
         );
     }
 }

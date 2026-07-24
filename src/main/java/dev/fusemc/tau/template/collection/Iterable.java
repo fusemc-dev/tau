@@ -4,8 +4,7 @@ import com.manchickas.optionated.Option;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Domain;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyIterator;
@@ -21,14 +20,15 @@ public record Iterable<T>(@NotNull Template<T> element) implements Template<Iter
         Objects.requireNonNull(element);
     }
 
-    /// Attempts to `lower` the provided [Value] as an [Iterator].
+    /// Attempt to `lower` the provided [Value] as an [Iterator].
     ///
+    /// ---
     /// The returned `Iterator` will **lazily** lower the received elements using
     /// the associated `element` `Template`.
     ///
     /// @see #raise(Iterator)
     /// @see #describe(Scope)
-    /// @since `0.1.0`
+    /// @since 0.1.0
     @Override
     public @NotNull Option<Iterator<T>> lower(@NotNull Value value) {
         if (value.isIterator())
@@ -81,14 +81,15 @@ public record Iterable<T>(@NotNull Template<T> element) implements Template<Iter
         return Option.none();
     }
 
-    /// Attempts to `lower` the provided [Iterator] as a [ProxyIterator].
+    /// Attempt to `lower` the provided [Iterator] as a [ProxyIterator].
     ///
+    /// ---
     /// The returned `Iterator` will **lazily** raise the received elements using
     /// the associated `element` `Template`.
     ///
     /// @see #lower(Value) 
     /// @see #describe(Scope)
-    /// @since `0.1.0`
+    /// @since 0.1.0
     @Override
     public @NotNull Option<@NotNull Value> raise(@Nullable Iterator<T> value) {
         if (value != null)
@@ -107,9 +108,9 @@ public record Iterable<T>(@NotNull Template<T> element) implements Template<Iter
         return Option.none();
     }
 
-    /// Describes the `Iterable`.
+    /// Describe the `Iterable`.
     ///
-    /// The returned [Description] will be annotated as having come from [Domain#DESCRIBE].
+    /// ---
     ///
     /// An `Iterable` is described as follows, where `δ` denotes the `Description`
     /// of the associated `element` [Template]:
@@ -118,15 +119,12 @@ public record Iterable<T>(@NotNull Template<T> element) implements Template<Iter
     /// ...δ
     /// ```
     /// 
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see #lower(Value) 
     /// @see #raise(Iterator) 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Description.concat(
-                Description.delimiter("..."),
-                this.element.describe(points)
-        ), Domain.DESCRIBE);
+        return Description.concat(Description.delimiter("..."), this.element.describe(points));
     }
 
     @Override

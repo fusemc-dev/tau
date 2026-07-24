@@ -1,9 +1,8 @@
 package dev.fusemc.tau.template.collection.tuple;
 
-import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Element;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.Mu;
@@ -98,7 +97,7 @@ public interface Tuple<T> extends Template<T> {
     /// [δ₀, δ₁, ..., δₙ]
     /// ```
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see #lower(Value)
     /// @see #raise(Object) 
     @Override

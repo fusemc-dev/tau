@@ -1,6 +1,6 @@
 package dev.fusemc.tau.element;
 
-import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
@@ -11,12 +11,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-/// An `Element` represents a single element of a tuple.
+/// A single element of a tuple.
+///
+/// ---
 ///
 /// An `Element` associates a single element of a tuple with
-/// a property of type `A` on type `T`. The [Accessor] function
+/// a property of type `A` on some type `T`. The [Accessor] function
 /// specifies how the property should be accessed from an instance.
 ///
+/// @since 0.1.0
 /// @see Property
 public record Element<T, A>(@NotNull Template<A> template,
                             @NotNull Accessor<T, A> accessor) {

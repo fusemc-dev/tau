@@ -2,9 +2,8 @@ package dev.fusemc.tau.template.dictionary.record;
 
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
-import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Property;
 import dev.fusemc.tau.element.constructor.PentaConstructor;
 import dev.fusemc.tau.template.Mu;
@@ -60,7 +59,7 @@ public record PentaRecord<T, A, B, C, D, E>(
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Record.describe(points, this.a, this.b, this.c, this.d, this.e), Domain.DESCRIBE);
+        return Record.describe(points, this.a, this.b, this.c, this.d, this.e);
     }
 
     @Override

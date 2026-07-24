@@ -1,6 +1,5 @@
 package dev.fusemc.tau;
 
-import dev.fusemc.tau.description.Description;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -19,7 +18,7 @@ public class TypeException extends RuntimeException {
 
     @Override
     public @NotNull String getMessage() {
-        return String.format("Type '%s' is not assignable to type '%s'.", this.present.stringify(null), this.expected.stringify(null));
+        return String.format("Type '%s' is not assignable to type '%s'.", this.present.stringify(), this.expected.stringify());
     }
 
     public @NotNull Description expected() {

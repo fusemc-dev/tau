@@ -1,12 +1,9 @@
-package dev.fusemc.tau.description.type.primitive;
+package dev.fusemc.tau.description.primitive;
 
 import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
-import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.Documented;
-import dev.fusemc.tau.description.Domain;
+import dev.fusemc.tau.Description;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -19,7 +16,7 @@ public record Reference(@NotNull String type) implements Description {
     }
 
     @Override
-    public @NotNull String stringify(@Nullable Domain enclosing) {
+    public @NotNull String stringify() {
         return Reference.STYLE.wrap(this.type);
     }
 }

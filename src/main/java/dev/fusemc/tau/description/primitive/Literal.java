@@ -1,11 +1,9 @@
-package dev.fusemc.tau.description.type.primitive;
+package dev.fusemc.tau.description.primitive;
 
 import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
-import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Domain;
+import dev.fusemc.tau.Description;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Objects;
@@ -28,7 +26,7 @@ public record Literal(@NotNull String literal) implements Description {
     }
 
     @Override
-    public @NotNull String stringify(@Nullable Domain enclosing) {
+    public @NotNull String stringify() {
         var buffer = Literal.STYLE.begin(new StringBuilder()).append('"');
         for (var i = 0; i < this.literal.length();) {
             var c = this.literal.codePointAt(i);

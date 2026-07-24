@@ -23,7 +23,7 @@ import java.util.stream.Collector;
 ///
 /// A `MapLike` is initiated with a [MapLike.Builder].
 ///
-/// @since `0.1.0`
+/// @since 0.1.0
 /// @see Builder
 public final class MapLike implements ProxyHashMap {
 

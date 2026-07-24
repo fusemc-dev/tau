@@ -1,11 +1,10 @@
 package dev.fusemc.tau.template;
 
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.proxy.FunctionLike;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.ApiStatus;
@@ -95,17 +94,14 @@ public final class Functional<T> implements Template<T> {
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Description.concat(
+        return Description.concat(
                 Description.concat(
                         Description.delimiter('('),
                         Description.join(Description.delimiter(", "), Arrays.stream(this.target.getParameters())
                                 .map(parameter -> {
                                     var description = Tau.describe(parameter.getParameterizedType());
                                     if (parameter.isVarArgs())
-                                        return Description.attach(Description.concat(
-                                                Description.ELLIPSIS,
-                                                description
-                                        ), Domain.REFLECTION);
+                                        return Description.concat(Description.ELLIPSIS, description);
                                     return description;
                                 })
                                 .toArray(Description[]::new)),
@@ -115,7 +111,7 @@ public final class Functional<T> implements Template<T> {
                 this.template != null
                         ? this.template.describe(points)
                         : Description.VOID
-        ), Domain.DESCRIBE);
+        );
     }
 
     @Override

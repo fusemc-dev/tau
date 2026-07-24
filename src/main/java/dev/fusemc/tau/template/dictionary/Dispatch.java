@@ -3,10 +3,9 @@ package dev.fusemc.tau.template.dictionary;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.TypeException;
-import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Property;
 import dev.fusemc.tau.template.Mu;
 import dev.fusemc.tau.template.dictionary.record.Record;
@@ -64,7 +63,7 @@ public record Dispatch<T, A>(
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Description.concat(
+        return Description.concat(
                 Description.delimiter('{'),
                 Description.concat(
                         this.discriminant.description(points),
@@ -72,7 +71,7 @@ public record Dispatch<T, A>(
                         Description.ELLIPSIS
                 ),
                 Description.delimiter('}')
-        ), Domain.DESCRIBE);
+        );
     }
 
     @Override

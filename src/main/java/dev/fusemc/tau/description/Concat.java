@@ -1,9 +1,7 @@
-package dev.fusemc.tau.description.type;
+package dev.fusemc.tau.description;
 
-import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Domain;
+import dev.fusemc.tau.Description;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -15,10 +13,10 @@ public record Concat(@NotNull Description @NotNull[] descriptions) implements De
     }
 
     @Override
-    public @NotNull String stringify(@Nullable Domain enclosing) {
+    public @NotNull String stringify() {
         var buffer = new StringBuilder();
         for (var description : this.descriptions)
-            buffer.append(description.stringify(enclosing));
+            buffer.append(description.stringify());
         return buffer.toString();
     }
 

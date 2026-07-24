@@ -1,12 +1,9 @@
-package dev.fusemc.tau.description;
+package dev.fusemc.tau;
 
-import dev.fusemc.tau.Documented;
-import dev.fusemc.tau.description.type.Attached;
-import dev.fusemc.tau.description.type.Join;
-import dev.fusemc.tau.description.type.Concat;
-import dev.fusemc.tau.description.type.primitive.*;
+import dev.fusemc.tau.description.Join;
+import dev.fusemc.tau.description.Concat;
+import dev.fusemc.tau.description.primitive.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -31,12 +28,6 @@ public interface Description {
     @NotNull Description UNKNOWN     = Description.keyword("unknown");
     @NotNull Description VOID        = Description.keyword("void");
     @NotNull Description ELLIPSIS    = Description.delimiter("...");
-
-    static @NotNull Description attach(@NotNull Description description, @NotNull Domain domain) {
-        Objects.requireNonNull(description);
-        Objects.requireNonNull(domain);
-        return new Attached(description, domain);
-    }
 
     static @NotNull Description delimiter(char delimiter) {
         return new Delimiter(String.valueOf(delimiter));
@@ -87,5 +78,5 @@ public interface Description {
         return new Join(delimiter, Arrays.copyOf(descriptions, descriptions.length));
     }
 
-    @NotNull String stringify(@Nullable Domain enclosing);
+    @NotNull String stringify();
 }

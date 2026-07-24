@@ -1,10 +1,9 @@
 package dev.fusemc.tau.template.collection;
 
-import dev.fusemc.tau.description.Description;
+import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Template;
 import com.manchickas.optionated.Option;
-import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.template.Mu;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
@@ -219,10 +218,9 @@ public record Array<T>(@NotNull Template<T> element,
         return Option.none();
     }
 
-    /// Describes the `Array`.
+    /// Describe the `Array`.
     ///
-    /// The returned [Description] will be annotated as having come from [Domain#DESCRIBE].
-    ///
+    /// ---
     /// An `Array` is described as follows, where `δ` denotes the `Description`
     /// of the associated `element` [Template]:
     ///
@@ -230,18 +228,18 @@ public record Array<T>(@NotNull Template<T> element,
     /// (δ)[]
     /// ```
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see #lower(Value)
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.attach(Description.concat(
+        return Description.concat(
                 Description.concat(
                         Description.delimiter("("),
                         this.element.describe(points),
                         Description.delimiter(')')
                 ),
                 Description.delimiter("[]")
-        ), Domain.DESCRIBE);
+        );
     }
 
     @Override

@@ -1,11 +1,9 @@
-package dev.fusemc.tau.description.type.primitive;
+package dev.fusemc.tau.description.primitive;
 
 import com.manchickas.charcoal.Charcoal;
 import com.manchickas.charcoal.Style;
-import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Domain;
+import dev.fusemc.tau.Description;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -18,7 +16,7 @@ public record Numerical<N extends Number>(@NotNull N number) implements Descript
     }
 
     @Override
-    public @NotNull String stringify(@Nullable Domain enclosing) {
+    public @NotNull String stringify() {
         if (this.number instanceof Float f) {
             if (f.isInfinite() || f.isNaN())
                 return Keyword.STYLE.wrap(f.toString());

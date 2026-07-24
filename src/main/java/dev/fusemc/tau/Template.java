@@ -1,9 +1,6 @@
 package dev.fusemc.tau;
 
 import com.manchickas.optionated.Either;
-import com.oracle.truffle.js.nodes.access.LocalVarIncNode;
-import dev.fusemc.tau.description.Description;
-import dev.fusemc.tau.description.Domain;
 import dev.fusemc.tau.element.Accessor;
 import dev.fusemc.tau.element.Element;
 import dev.fusemc.tau.element.constructor.*;
@@ -14,12 +11,10 @@ import dev.fusemc.tau.template.collection.Iterable;
 import dev.fusemc.tau.template.collection.tuple.*;
 import dev.fusemc.tau.template.dictionary.Dispatch;
 import dev.fusemc.tau.template.dictionary.HashLike;
-import dev.fusemc.tau.template.dictionary.Postpone;
 import dev.fusemc.tau.template.dictionary.record.*;
 import com.manchickas.optionated.Option;
 import dev.fusemc.tau.template.dictionary.record.Record;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,10 +23,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 /// A bidirectional type schema for Polyglot [Value]s.
 ///
@@ -50,7 +42,7 @@ import java.util.function.UnaryOperator;
 /// @see #lower(Value)
 /// @see #raise(Object)
 /// @see #describe(Scope)
-/// @since `0.1.0`
+/// @since 0.1.0
 public interface Template<T> {
 
     @NotNull Template<@NotNull Number> NUMBER = new Numerical<>() {
@@ -77,7 +69,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.NUMBER, Domain.DESCRIBE);
+            return Description.NUMBER;
         }
     };
     @NotNull Template<@NotNull String> STRING = new Template<>() {
@@ -98,7 +90,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.STRING, Domain.DESCRIBE);
+            return Description.STRING;
         }
     };
     @NotNull Template<@NotNull Boolean> BOOLEAN = new Template<>() {
@@ -119,7 +111,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BOOLEAN, Domain.DESCRIBE);
+            return Description.BOOLEAN;
         }
     };
     @NotNull Template<@NotNull Byte> BYTE = new Numerical<>() {
@@ -133,7 +125,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BYTE, Domain.DESCRIBE);
+            return Description.BYTE;
         }
     };
     @NotNull Template<@NotNull Short> SHORT = new Numerical<>() {
@@ -147,7 +139,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.SHORT, Domain.DESCRIBE);
+            return Description.SHORT;
         }
     };
     @NotNull Template<@NotNull Integer> INTEGER = new Numerical<>() {
@@ -161,7 +153,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.INTEGER, Domain.DESCRIBE);
+            return Description.INTEGER;
         }
     };
     @NotNull Template<@NotNull Long> LONG = new Numerical<>() {
@@ -175,7 +167,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.LONG, Domain.DESCRIBE);
+            return Description.LONG;
         }
     };
     @NotNull Template<@NotNull Float> FLOAT = new Numerical<>() {
@@ -189,7 +181,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.FLOAT, Domain.DESCRIBE);
+            return Description.FLOAT;
         }
     };
     @NotNull Template<@NotNull Double> DOUBLE = new Numerical<>() {
@@ -203,7 +195,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.DOUBLE, Domain.DESCRIBE);
+            return Description.DOUBLE;
         }
     };
     @NotNull Template<@NotNull BigInteger> BIG_INTEGER = new Numerical<>() {
@@ -217,45 +209,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.BIG_INTEGER, Domain.DESCRIBE);
-        }
-    };
-    @NotNull Template<@NotNull ProxyExecutable> FUNCTION = new Template<>() {
-
-        @Override
-        public @NotNull Option<ProxyExecutable> lower(@NotNull Value value) {
-            if (value.canExecute())
-                return Option.some(value::execute);
-            if (value.isProxyObject()) {
-                var proxy = value.asProxyObject();
-                if (proxy instanceof ProxyExecutable function)
-                    return Option.some(function);
-                return Option.none();
-            }
-            return Option.none();
-        }
-
-        @Override
-        public @NotNull Option<@NotNull Value> raise(@Nullable ProxyExecutable value) {
-            if (value != null)
-                return Option.some(Value.asValue(value));
-            return Option.none();
-        }
-
-        @Override
-        public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.concat(
-                    Description.concat(
-                            Description.delimiter('('),
-                            Description.concat(
-                                    Description.ELLIPSIS,
-                                    Description.ANY
-                            ),
-                            Description.delimiter(')')
-                    ),
-                    Description.delimiter(" => "),
-                    Description.ANY
-            ), Domain.DESCRIBE);
+            return Description.BIG_INTEGER;
         }
     };
     @NotNull Template<@Nullable Void> UNDEFINED = new Template<>() {
@@ -274,7 +228,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.UNDEFINED, Domain.DESCRIBE);
+            return Description.UNDEFINED;
         }
     };
     @NotNull Template<@Nullable Void> NULL = new Template<>() {
@@ -293,7 +247,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.NULL, Domain.DESCRIBE);
+            return Description.NULL;
         }
     };
     @NotNull Template<@NotNull Value> ANY = new Template<>() {
@@ -313,7 +267,7 @@ public interface Template<T> {
 
         @Override
         public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-            return Description.attach(Description.ANY, Domain.DESCRIBE);
+            return Description.ANY;
         }
     };
 
@@ -325,6 +279,30 @@ public interface Template<T> {
     static @NotNull Template<@NotNull String> literal(@NotNull String literal) {
         Objects.requireNonNull(literal);
         return new Literal(literal);
+    }
+
+    static <T> @NotNull Template<@NotNull T> split(@NotNull Template<T> lower,
+                                                   @NotNull Template<T> raise,
+                                                   @NotNull Function<@NotNull Scope<@NotNull Mu<?>>, @NotNull Description> descriptor) {
+        Objects.requireNonNull(lower);
+        Objects.requireNonNull(raise);
+        return new Template<>() {
+
+            @Override
+            public @NotNull Option<T> lower(@NotNull Value value) {
+                return lower.lower(value);
+            }
+
+            @Override
+            public @NotNull Option<@NotNull Value> raise(@Nullable T value) {
+                return raise.raise(value);
+            }
+
+            @Override
+            public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+                return descriptor.apply(points);
+            }
+        };
     }
 
     @SafeVarargs
@@ -440,23 +418,6 @@ public interface Template<T> {
         return new PentaTuple<>(a, b, c, d, e, constructor);
     }
 
-    /// Construct a **postponed** record template.
-    ///
-    /// ---
-    /// Constructs a record template from the given `Template` by assuming
-    /// it lowers to an object-like structure, and implementing the [Record#raiseWith(java.lang.Object, dev.fusemc.tau.element.Property)]
-    /// behavior through injecting the required [Property] into the lowered structure.
-    ///
-    /// ```java
-    /// Template.postpone(Template.map(Template.STRING, Template.INTEGER));
-    /// ```
-    ///
-    /// @since `0.2.5`
-    static <T> @NotNull Record<T> postpone(@NotNull Template<T> template) {
-        Objects.requireNonNull(template);
-        return new Postpone<>(template);
-    }
-
     static <K, V> @NotNull Template<@NotNull Map<K, V>> map(@NotNull Template<K> key,
                                                             @NotNull Template<V> value) {
         Objects.requireNonNull(key);
@@ -543,13 +504,10 @@ public interface Template<T> {
 
             @Override
             public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-                return Description.attach(
-                        Description.join(
-                                Description.delimiter(" | "),
-                                left.describe(points.branch()),
-                                right.describe(points.branch())
-                        ),
-                        Domain.DESCRIBE
+                return Description.concat(
+                        left.describe(points.branch()),
+                        Description.delimiter(" | "),
+                        right.describe(points.branch())
                 );
             }
         };
@@ -658,7 +616,7 @@ public interface Template<T> {
 
             @Override
             public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-                return Description.attach(forward.apply(Template.this.describe(points)), Domain.DESCRIBE);
+                return forward.apply(Template.this.describe(points));
             }
         };
     }
@@ -666,48 +624,46 @@ public interface Template<T> {
     static @NotNull String toString(@NotNull Template<?> template) {
         Objects.requireNonNull(template);
         var description = template.describe(Scope.hashScope());
-        return description.stringify(null);
+        return description.stringify();
     }
 
     /// Attempt marshaling a provided [Value] into a [T].
     ///
-    /// If the conversion succeded, an `Option.some()` containing the result should be returned.
+    /// If the conversion succeeded, an `Option.some()` containing the result should be returned.
     /// Otherwise, `Option.none()` should be returned to indicate a failure.
     ///
     /// ```
     /// ∀x, lower x = Some y ⇒ ∃z, raise y = Some z
     /// ```
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see #raise(Object)
     /// @see #describe(Scope)
     @NotNull Option<T> lower(@NotNull Value value);
 
     /// Attempt marshaling a provided, **nullable** [T] into a [Value].
     ///
-    /// If the conversion succeded, an `Option.some()` containing the result should be returned.
+    /// If the conversion succeeded, an `Option.some()` containing the result should be returned.
     /// Otherwise, `Option.none()` should be returned to indicate a failure.
     ///
     /// ```
     /// ∀x, raise x = Some y ⇒ ∃z, lower y = Some z
     /// ```
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see #lower(Value)
     /// @see #describe(Scope)
     @NotNull Option<@NotNull Value> raise(@Nullable T value);
 
     /// Describe the `Template`.
     ///
-    /// Produce a [Description] describing the type the `Template` accepts. The returned `Description`
-    /// should be annotated as having come from [Domain#DESCRIBE].
+    /// Produce a [Description] describing the type the `Template` accepts.
     ///
     /// If the `Template` is composed of others, it is the responsibility of the `Template` to
     /// pass the received `points` [Scope] down when describing its dependencies, in order
     /// to resolve potential circular references.
     ///
-    /// @since `0.1.0`
+    /// @since 0.1.0
     /// @see Description
-    /// @see Domain
     /// @see Mu
     @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points);
 }

@@ -23,7 +23,7 @@ import java.util.Objects;
 /// Defines an [InvocationHandler] that acts as an implementation
 /// of a **functional** interface in terms of a Polyglot [Value].
 ///
-/// @since `0.1.0`
+/// @since 0.1.0
 public final class FunctionLike implements InvocationHandler {
 
     private static final Method TO_STRING;
