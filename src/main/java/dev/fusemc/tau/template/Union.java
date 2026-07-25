@@ -11,6 +11,24 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 
+/// A [Template] that attempts multiple alternatives until one succeeds.
+///
+/// ---
+///
+/// A `Union` accepts a [Value] as long as it satisfies one of the alternatives provided
+/// at construction. The alternatives are attempted **in order**. It is, however, rarely wished to
+/// attempt multiple alternatives when **raising** a value.
+///
+/// As such, a union is often used in conjunction with {@link Template#split(Template, Template) Template.split()}.
+///
+/// ```
+/// Template.split(
+///     Template.union(...),
+///     Template.record(...)
+/// )
+/// ```
+///
+/// @since 0.1.0
 public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements Template<T> {
 
     public Union {

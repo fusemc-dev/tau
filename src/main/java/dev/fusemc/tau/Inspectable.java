@@ -6,7 +6,9 @@ import org.jetbrains.annotations.NotNull;
 ///
 /// ---
 /// When inspecting an `Inspectable` type, its [#inspect()] implementation
-/// will used over producing a plain `[]`
+/// will be used over producing a plain `[]`
+///
+/// @since ~0.2.8
 public interface Inspectable {
 
     @NotNull Description inspect();

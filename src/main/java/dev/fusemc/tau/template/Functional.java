@@ -5,8 +5,10 @@ import dev.fusemc.tau.Description;
 import dev.fusemc.tau.Scope;
 import dev.fusemc.tau.Tau;
 import dev.fusemc.tau.Template;
-import dev.fusemc.tau.proxy.FunctionLike;
+import dev.fusemc.tau.function.FunctionLike;
+import dev.fusemc.tau.function.convention.Convention;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,21 +21,30 @@ public final class Functional<T> implements Template<T> {
 
     private final @NotNull Class<T> type;
     private final @NotNull Method target;
-    private final @Nullable Template<?> template;
+    private final @NotNull Template<?> template;
 
     @SuppressWarnings("PatternVariableHidesField")
     public Functional(@NotNull Class<T> type,
-                      @Nullable Template<?> template) {
+                      @NotNull Template<?> template) {
         var option = Functional.findTarget(type);
         if (option instanceof Option.Some<Method>(var target)) {
             this.type     = Objects.requireNonNull(type);
             this.target   = Objects.requireNonNull(target);
-            this.template = template;
+            this.template = Objects.requireNonNull(template);
             return;
         }
         throw new AssertionError();
     }
 
+    /// Attempt to find an interface method suitable for implementation.
+    ///
+    /// ---
+    ///
+    /// If the provided `type` is an **interface** with a single, unambiguous **abstract method**, it is
+    /// considered the target of the `Functional`. Otherwise, the type is considered incompatible
+    /// and `Option.none()` is returned.
+    ///
+    /// @since 0.1.0
     @ApiStatus.Internal
     public static @NotNull Option<Method> findTarget(@NotNull Class<?> type) {
         Objects.requireNonNull(type);
@@ -61,23 +72,7 @@ public final class Functional<T> implements Template<T> {
     @SuppressWarnings("unchecked")
     public @NotNull Option<T> lower(@NotNull Value value) {
         if (value.canExecute()) {
-            var handler = new FunctionLike(this.target, new Function<>() {
-
-                @Override
-                public @Nullable Object apply(@Nullable Object @NotNull[] args) {
-                    return value.execute(args);
-                }
-
-                @Override
-                public int hashCode() {
-                    return value.hashCode();
-                }
-
-                @Override
-                public @NotNull String toString() {
-                    return value.toString();
-                }
-            }, this.template);
+            var handler = new FunctionLike<>(this.target, this.template, Convention.POLYGLOT, value);
             return Option.some((T) Proxy.newProxyInstance(
                     Tau.class.getClassLoader(),
                     new Class<?>[] { this.type },
@@ -86,34 +81,16 @@ public final class Functional<T> implements Template<T> {
         }
         if (value.isProxyObject()) {
             var proxy = value.asProxyObject();
+            if (this.type.isInstance(proxy))
+                return Option.some(this.type.cast(proxy));
             if (proxy instanceof ProxyExecutable executable) {
-                var handler = new FunctionLike(this.target, new Function<>() {
-
-                    @Override
-                    public @Nullable Object apply(@Nullable Object @NotNull[] args) {
-                        return executable.execute(Arrays.stream(args)
-                                .map(Value::asValue)
-                                .toArray(Value[]::new));
-                    }
-
-                    @Override
-                    public int hashCode() {
-                        return executable.hashCode();
-                    }
-
-                    @Override
-                    public @NotNull String toString() {
-                        return executable.toString();
-                    }
-                }, this.template);
+                var handler = new FunctionLike<>(this.target, this.template, Convention.PROXY, executable);
                 return Option.some((T) Proxy.newProxyInstance(
                         Tau.class.getClassLoader(),
                         new Class<?>[] { this.type },
                         handler
                 ));
             }
-            if (this.type.isInstance(host))
-                return Option.some(this.type.cast(host));
             return Option.none();
         }
         if (value.isHostObject()) {
@@ -131,8 +108,8 @@ public final class Functional<T> implements Template<T> {
             var type = value.getClass();
             if (Proxy.isProxyClass(type)) {
                 var handler = Proxy.getInvocationHandler(value);
-                if (handler instanceof FunctionLike fn)
-                    return Option.some(fn.delegate());
+                if (handler instanceof FunctionLike<?> fn)
+                    return Option.some(Value.asValue(fn.unwrap()));
                 return Option.none();
             }
             return Option.some(Value.asValue(value));
@@ -156,9 +133,7 @@ public final class Functional<T> implements Template<T> {
                         Description.delimiter(')')
                 ),
                 Description.delimiter(" => "),
-                this.template != null
-                        ? this.template.describe(points)
-                        : Description.VOID
+                this.template.describe(points)
         );
     }
 

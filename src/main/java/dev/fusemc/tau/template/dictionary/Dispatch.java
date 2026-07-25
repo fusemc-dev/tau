@@ -17,10 +17,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Function;
 
-public record Dispatch<T, A>(
-        @NotNull Property<T, A> discriminant,
-        @NotNull Function<A, Option<Record<? extends T>>> dispatch
-) implements Template<T> {
+public record Dispatch<T, A>(@NotNull Property<T, A> discriminant,
+                             @NotNull Function<A, Option<Record<? extends T>>> dispatch) implements Template<T> {
 
     public Dispatch {
         Objects.requireNonNull(discriminant);

@@ -20,10 +20,7 @@ import java.util.Objects;
 
 public interface Record<T> extends Template<T> {
 
-    @NotNull Option<Value> raiseWith(
-            @Nullable T instance,
-            @NotNull Property<? super T, ?> property
-    );
+    @NotNull Option<Value> raiseWith(@Nullable T instance, @NotNull Property<? super T, ?> property);
 
     @ApiStatus.Internal
     static boolean isRecord(@NotNull Value value) {

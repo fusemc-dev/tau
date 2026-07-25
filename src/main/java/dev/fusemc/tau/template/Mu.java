@@ -11,8 +11,28 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Function;
 
+/// A fixed point of a higher-kinded [Template].
+///
+/// ---
+/// A `Mu` represents a recursive point in a definition of a [Template]. When constructing a `Mu`,
+/// a **constructor function** is provided that receives a [Template] that acts identically to the template
+/// **returned** from the function.
+///
+/// ```
+/// Template.recursive(self ->
+///     Template.union(Template.literal("foo"), self))
+/// ```
+///
+/// @since 0.1.0
 public final class Mu<T> implements Template<T> {
 
+    /// The delegate [Template] that is returned from the constructor function.
+    ///
+    /// ---
+    /// Any operation on the `Mu` is delegated to this [Template]. As a result,
+    /// it behaves identically to the constructed template.
+    ///
+    /// @since 0.1.0
     private final @NotNull Template<T> delegate;
 
     public Mu(@NotNull Function<Template<T>, Template<T>> constructor) {

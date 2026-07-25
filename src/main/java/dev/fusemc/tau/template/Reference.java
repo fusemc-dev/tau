@@ -10,6 +10,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/// A [Template] that accepts a reference to an instance of some type `T`.
+///
+/// ---
+/// A `Reference` accepts a [Value] that wraps either a **proxy** or a **host value** of type `T` and directly
+/// converts it. It is most commonly used in conjunction with other [Template]s:
+///
+/// ```
+/// Template.union(
+///     Template.record(...),
+///     Template.reference(Person.class)
+/// )
+/// ```
+///
+/// @since 0.1.0
 public record Reference<T>(@NotNull Class<T> type) implements Template<@NotNull T> {
 
     public Reference {

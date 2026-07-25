@@ -1287,7 +1287,6 @@ public final class Tau {
     ///
     /// ---
     /// Produces a [Description] based on the given `Type`.
-    /// The produced description will be annotated as having come from [Domain#REFLECTION].
     ///
     /// Any generic metadata on the given `Type` will be preserved.
     ///

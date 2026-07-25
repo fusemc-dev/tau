@@ -10,6 +10,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/// A [Template] that accepts a single string literal.
+///
+/// ---
+///
+/// A `Literal` accepts any string that equals the `literal` provided
+/// at construction. It is most commonly used to model **enumerations**:
+///
+/// ```
+/// Template.union(
+///     Template.literal("foo").flatMap(...),
+///     Template.literal("bar").flatMap(...),
+/// )
+/// ```
+///
+/// @since 0.1.0
 public record Literal(@NotNull String literal) implements Template<String> {
 
     public Literal {
@@ -30,7 +45,7 @@ public record Literal(@NotNull String literal) implements Template<String> {
     @Override
     public @NotNull Option<@NotNull Value> raise(@Nullable String value) {
         if (this.literal.equals(value))
-            return Template.STRING.raise(value);
+            return Option.some(Value.asValue(value));
         return Option.none();
     }
 

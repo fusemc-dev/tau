@@ -250,6 +250,29 @@ public interface Template<T> {
             return Description.NULL;
         }
     };
+    // This defines 'void' as a union of either null or undefined.
+    // It's also useful for as a return type for functions:
+    //
+    // (int, int) => void
+    @NotNull Template<@Nullable Void> VOID = new Template<>() {
+
+        @Override
+        public @NotNull Option<@Nullable Void> lower(@NotNull Value value) {
+            if (Tau.isNull(value) || Tau.isUndefined(value))
+                return Option.some(null);
+            return Option.none();
+        }
+
+        @Override
+        public @NotNull Option<@NotNull Value> raise(@Nullable Void value) {
+            return Option.some(Value.asValue(null));
+        }
+
+        @Override
+        public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
+            return Description.VOID;
+        }
+    };
     @NotNull Template<@NotNull Value> ANY = new Template<>() {
 
         @Override
@@ -282,8 +305,7 @@ public interface Template<T> {
     }
 
     static <T> @NotNull Template<@NotNull T> split(@NotNull Template<T> lower,
-                                                   @NotNull Template<T> raise,
-                                                   @NotNull Function<@NotNull Scope<@NotNull Mu<?>>, @NotNull Description> descriptor) {
+                                                   @NotNull Template<T> raise) {
         Objects.requireNonNull(lower);
         Objects.requireNonNull(raise);
         return new Template<>() {
@@ -300,7 +322,11 @@ public interface Template<T> {
 
             @Override
             public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-                return descriptor.apply(points);
+                return Description.concat(
+                        lower.describe(points),
+                        Description.delimiter(" <|> "),
+                        raise.describe(points)
+                );
             }
         };
     }
@@ -352,15 +378,11 @@ public interface Template<T> {
         return new Dispatch<>(discriminant, dispatch);
     }
 
-    static <T> @NotNull Template<@NotNull T> functional(@NotNull Class<T> type) {
-        Objects.requireNonNull(type);
-        return new Functional<>(type, null);
-    }
-
     static <T> @NotNull Template<@NotNull T> functional(@NotNull Class<T> type,
-                                                        @Nullable Template<?> returns) {
+                                                        @NotNull Template<?> template) {
         Objects.requireNonNull(type);
-        return new Functional<>(type, returns);
+        Objects.requireNonNull(template);
+        return new Functional<>(type, template);
     }
 
     static <T, A> @NotNull Template<T> tuple(@NotNull Element<T, A> a,

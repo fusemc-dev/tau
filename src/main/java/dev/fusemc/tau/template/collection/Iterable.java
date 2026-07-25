@@ -81,7 +81,7 @@ public record Iterable<T>(@NotNull Template<T> element) implements Template<Iter
         return Option.none();
     }
 
-    /// Attempt to `lower` the provided [Iterator] as a [ProxyIterator].
+    /// Attempt to `raise` the provided [Iterator] as a [ProxyIterator].
     ///
     /// ---
     /// The returned `Iterator` will **lazily** raise the received elements using
