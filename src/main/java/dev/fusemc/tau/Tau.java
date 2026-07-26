@@ -168,18 +168,36 @@ public final class Tau {
         };
     }
 
+    /// Create a **prototype-like** `toString` implementation for the given type.
+    ///
+    /// ---
+    /// The returned implementation, when called with no arguments, will return a string representation of the type,
+    /// in the form of `[object Type]`, similar to `Object.prototype.toString()`, where `Type` is the [Documented]
+    /// name of the type.
+    ///
+    /// ```java
+    /// @Documented("Person")
+    /// record Person(...) {
+    ///
+    ///     // () => "[object Person]"
+    ///     static final ProxyExecutable TO_STRING =
+    ///         Tau.toPrototypeString(Person.class);
+    /// }
+    /// ```
+    ///
+    /// @since 0.3.0
     public static @NotNull ProxyExecutable toPrototypeString(@NotNull Class<?> type) {
         Objects.requireNonNull(type);
         if (type.isAnnotationPresent(Documented.class)) {
             var annotation = type.getAnnotation(Documented.class);
-            var tag = String.format("[object %s]", annotation.value());
+            var prototype  = String.format("[object %s]", annotation.value());
             return (args) -> {
                 if (args.length == 0)
-                    return tag;
+                    return prototype;
                 throw new UnsupportedOperationException();
             };
         }
-        throw new IllegalArgumentException(String.format("Attempted to call toPrototypeString() on an undocumented type '%s'.", type.getSimpleName()));
+        throw new IllegalArgumentException(String.format("Attempted to query the toPrototypeString() of an undocumented type '%s'.", type.getSimpleName()));
     }
 
     /// Return an [`undefined`](https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type) [Value].

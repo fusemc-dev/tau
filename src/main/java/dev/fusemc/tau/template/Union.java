@@ -57,11 +57,15 @@ public record Union<T>(@NotNull Template<T> @NotNull[] alternatives) implements 
 
     @Override
     public @NotNull Description describe(@NotNull Scope<@NotNull Mu<?>> points) {
-        return Description.join(
-                Description.delimiter(" | "),
-                Arrays.stream(this.alternatives)
-                    .map(t -> t.describe(points))
-                    .toArray(Description[]::new)
+        return Description.concat(
+                Description.delimiter('('),
+                Description.join(
+                        Description.delimiter(" | "),
+                        Arrays.stream(this.alternatives)
+                                .map(t -> t.describe(points))
+                                .toArray(Description[]::new)
+                ),
+                Description.delimiter(')')
         );
     }
 

@@ -2,7 +2,7 @@
 
 # Tau
 
-> Type-checking the everlasting flame at v0.1.1
+> Type-checking the everlasting flame at v0.3.0
 
 Tau (τ) is a runtime type-validation library for [GraalVM Polyglot](https://www.graalvm.org/latest/reference-manual/polyglot-programming/) values. It
 was primarily designed for [Fuse](https://github.com/fusemc-dev)'s needs of seamless type-safe integration with JavaScript. Despite its
@@ -15,8 +15,7 @@ origins, Tau is a _general-purpose_ library and doesn't rely on Fuse in any way.
 ## Templates
 
 > [!NOTE]
-> Throughout this section, the `/.../` circumfix syntax is used to denote `Value` literals. `/42/` thus defines a `Value` of `42`. You will shortly discover that
-> the `/.../` syntax isn't used coincidentally.
+> Throughout this section, the `/.../` circumfix syntax is used to denote `Value` literals. `/42/` thus defines a `Value` of `42`.
 
 Type validation in Tau is done through [Template](https://fusemc.dev/tau/blob/master/src/main/java/dev/fusemc/tau/Template.java)s. A template may be thought of
 as a _reusable_, _**bidirectional**_ type-schema, that is capable of _describing_ itself.
@@ -38,13 +37,10 @@ in the [Template](https://fusemc.dev/tau/blob/master/src/main/java/dev/fusemc/ta
 
 ## Descriptions
 
-Being written specifically for Fuse, Tau was developed with user-facing exceptiosn in mind. Hence,
-Tau includes an awfully over-engineered `Description` system.
+Being written specifically for Fuse, Tau was developed with user-facing exceptions in mind.
 
 A `Description` is a textual representation of a some type schema. Tau is capable of
 inferring a `Description` from multiple sources, as well as building one from a `Template`.
 
-The source a `Description` was inferred from is called a **Domain**. When inferring a description, Tau _annotates_ it with
-the domain it's coming from. The domain is visible in a description as a set of **purple brackets**.
-
-![snippet](snippet.png)
+The syntax Tau uses largely mimics that of TypeScript, although it has some expansions and differences. We won't go over
+the syntax here, as it's largely self-explanatory.
